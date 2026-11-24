@@ -18,9 +18,17 @@ await db.exec(`
   grant usage on schema auth to authenticated;
   grant execute on function auth.uid() to authenticated;
   create publication supabase_realtime;
+  create role service_role bypassrls;
+  grant usage on schema auth to service_role;
+  -- tiruan pg_cron & pg_net (tidak tersedia di PGlite)
+  create schema cron; create table cron.job (jobname text primary key, schedule text, command text);
+  create function cron.schedule(n text, s text, c text) returns bigint language sql as $$ insert into cron.job values (n, s, c) on conflict (jobname) do update set schedule = excluded.schedule, command = excluded.command; select 1::bigint $$;
+  create function cron.unschedule(n text) returns boolean language sql as $$ delete from cron.job where jobname = n; select true $$;
+  create schema net; create function net.http_post(url text, headers jsonb, body jsonb) returns bigint language sql as $$ select 1::bigint $$;
 `);
 for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
-  await db.exec(fs.readFileSync(path.join(dir, f), 'utf8'));
+  const sql = fs.readFileSync(path.join(dir, f), 'utf8').replace(/^create extension .*$/gm, '-- (ekstensi ditiru di uji)');
+  await db.exec(sql);
 }
 // Sengaja TIDAK memberi hak tabel di sini: seperti proyek Supabase baru,
 // semua hak akses harus datang dari migration itu sendiri.
@@ -123,6 +131,27 @@ await fails(as(rina, `select reset_month($1,2026,1)`, [eq]), /Hanya admin/, 'res
 const audit = (await as(rina, `select table_name, action, user_label from audit_log order by id`)).rows;
 ok(audit.some((a) => a.table_name === 'checks' && a.action === 'DELETE' && a.user_label === 'Rina S'), 'riwayat mencatat penghapusan');
 await fails(as(admin, `delete from audit_log`), /permission denied/, 'riwayat tidak bisa dihapus, bahkan oleh admin');
+
+// Notifikasi: langganan perangkat berpindah akun
+await db.exec(`grant usage on schema public to service_role; grant usage on schema cron, net to service_role; grant select, insert, update, delete on cron.job to service_role;`);
+await as(rina, `select save_push_subscription('https://push.example/abc', 'p', 'a', 'iPhone')`);
+await as(admin, `select save_push_subscription('https://push.example/abc', 'p2', 'a2', 'iPhone')`);
+const subs = (await db.query(`select user_id from push_subscriptions where endpoint = 'https://push.example/abc'`)).rows;
+ok(subs.length === 1 && subs[0].user_id === admin, 'satu perangkat = satu langganan, ikut akun terakhir');
+await fails(as(rina, `select * from app_secrets`), /permission denied/, 'rahasia aplikasi tidak bisa dibaca petugas');
+await fails(as(rina, `select reminder_summary('pagi')`), /permission denied/, 'ringkasan pengingat hanya untuk server');
+await fails(as(rina, `select configure_reminders('x','y')`), /permission denied/, 'jadwal pengingat hanya untuk server');
+async function asService(sql, params) {
+  await db.exec(`set role service_role`);
+  try { return await db.query(sql, params); } finally { await db.exec('reset role'); }
+}
+const sum = (await asService(`select reminder_summary('malam') s`)).rows[0].s;
+ok(sum.pending === 1 && sum.pending_locations[0] === 'Laboratorium TBC' && sum.due >= 1, 'ringkasan: indikator malam belum dicatat & kegiatan jatuh tempo');
+await asService(`select configure_reminders('https://x.supabase.co/functions/v1/push', 'rahasia')`);
+await asService(`select configure_reminders('https://x.supabase.co/functions/v1/push', 'rahasia')`);
+const jobs = (await db.query(`select jobname, schedule, command from cron.job order by jobname`)).rows;
+ok(jobs.length === 2 && jobs[0].schedule === '0 1 * * *' && jobs[1].schedule === '0 8 * * *' && jobs[1].command.includes("'sore'") && jobs[0].command.includes('x-siqura-cron'),
+  'jadwal 08.00 & 15.00 WIB terpasang sekali (idempoten)');
 
 // Tanpa login (anon) tidak bisa membaca apa pun
 await db.exec('set role anon');

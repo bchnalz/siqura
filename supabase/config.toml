@@ -3,3 +3,8 @@ project_id = "siqura"
 
 [functions.admin-users]
 verify_jwt = true
+
+# "push" memeriksa izinnya sendiri: rahasia penjadwal untuk 'send',
+# token login untuk 'test'; 'public_key' & 'bootstrap' aman untuk umum.
+[functions.push]
+verify_jwt = false

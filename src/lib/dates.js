@@ -25,23 +25,29 @@ export function diffDays(aIso, bIso) {
 }
 
 export const SHIFTS = ['pagi', 'sore', 'malam'];
-export const SHIFT_LABEL = { pagi: 'Pagi', sore: 'Sore', malam: 'Malam' };
+// Kunci 'sore' dipertahankan di database; ditampilkan sebagai "Siang".
+export const SHIFT_LABEL = { pagi: 'Pagi', sore: 'Siang', malam: 'Malam' };
 
 /**
  * Shift yang sedang berjalan.
- * Pagi 06.00–13.59, Sore 14.00–20.59, Malam 21.00–05.59.
+ * Pagi 07.00–13.59, Siang 14.00–20.59, Malam 21.00–06.59.
  * Malam lewat tengah malam tetap dicatat pada tanggal malam itu dimulai.
  */
 export function currentShift(date = new Date()) {
   const { iso, hour } = wibParts(date);
-  if (hour < 6) return { shift: 'malam', date: addDays(iso, -1) };
+  if (hour < 7) return { shift: 'malam', date: addDays(iso, -1) };
   if (hour < 14) return { shift: 'pagi', date: iso };
   if (hour < 21) return { shift: 'sore', date: iso };
   return { shift: 'malam', date: iso };
 }
 
-export function greeting(shift) {
-  return { pagi: 'Selamat pagi', sore: 'Selamat sore', malam: 'Selamat malam' }[shift];
+/** Sapaan menurut jam WIB (bukan shift): pagi, siang, sore, malam. */
+export function greeting(date = new Date()) {
+  const { hour } = wibParts(date);
+  if (hour >= 4 && hour < 11) return 'Selamat pagi';
+  if (hour >= 11 && hour < 15) return 'Selamat siang';
+  if (hour >= 15 && hour < 18) return 'Selamat sore';
+  return 'Selamat malam';
 }
 
 export function formatLongDate(iso) {

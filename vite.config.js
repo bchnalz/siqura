@@ -15,7 +15,7 @@ export default defineConfig({
       filename: 'sw.js',
       registerType: 'autoUpdate',
       injectRegister: false,
-      includeAssets: ['icons/favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/favicon-48.png', 'icons/apple-touch-icon.png', 'icons/logo-256.png'],
       manifest: {
         name: 'SiQura — Sistem QR Ruangan dan Alat',
         short_name: 'SiQura',
@@ -25,7 +25,7 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#F3F6F5',
+        background_color: '#FFFFFF',
         theme_color: '#0E5A5F',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },

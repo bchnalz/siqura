@@ -36,7 +36,7 @@ export default function HomePage() {
         </div>
         <div>
           <p className="text-[13px] text-on-brand-muted">{formatLongDate(today)} · Shift {SHIFT_LABEL[shift]}</p>
-          <h1 className="text-[22px] font-bold">{greeting(shift)}{firstName ? `, ${firstName}` : ''}</h1>
+          <h1 className="text-[22px] font-bold">{greeting()}{firstName ? `, ${firstName}` : ''}</h1>
         </div>
       </header>
 

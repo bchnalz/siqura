@@ -73,31 +73,45 @@ const mobileNav = [
   { to: '/akun', label: 'Akun', icon: UserRound },
 ];
 
+/** Tab menu bawah: ikon saja, tab aktif melebar halus menampilkan labelnya. */
+function TabItem({ to, label, icon: Icon, end }) {
+  return (
+    <li className="flex">
+      <NavLink to={to} end={end} aria-label={label}
+        className={({ isActive }) => cn(
+          'flex h-11 min-w-10 items-center justify-center rounded-full px-2 transition-[background-color,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+          isActive ? 'bg-brand-soft text-brand' : 'text-subtle hover:text-ink')}>
+        {({ isActive }) => (
+          <>
+            <Icon size={22} strokeWidth={isActive ? 2.4 : 2} aria-hidden="true" className="shrink-0" />
+            <span className={cn('grid transition-[grid-template-columns,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              isActive ? 'ml-1 grid-cols-[1fr] opacity-100' : 'ml-0 grid-cols-[0fr] opacity-0')}>
+              <span aria-hidden="true" className="overflow-hidden text-xs font-bold whitespace-nowrap">{label}</span>
+            </span>
+          </>
+        )}
+      </NavLink>
+    </li>
+  );
+}
+
 function MobileShell() {
   const onEquipment = useMatch('/alat/:id');
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ground">
       <main className={cn('flex-1 print:pb-0', !onEquipment && 'pb-24')}><Outlet /></main>
       {!onEquipment && (
-        <nav aria-label="Menu utama" className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-line bg-white print:hidden">
-          <ul className="grid grid-cols-5 items-end">
-            {mobileNav.map(({ to, label, icon: Icon, end, center }) => (
-              <li key={to} className="flex justify-center">
-                {center ? (
-                  <NavLink to={to} aria-label={label}
-                    className="-mt-6 mb-1 flex size-14 items-center justify-center rounded-[18px] bg-brand text-white shadow-lg shadow-brand/30">
-                    <Icon size={26} aria-hidden="true" />
-                  </NavLink>
-                ) : (
-                  <NavLink to={to} end={end}
-                    className={({ isActive }) => cn('flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-semibold',
-                      isActive ? 'font-bold text-brand' : 'text-subtle')}>
-                    <Icon size={22} aria-hidden="true" />{label}
-                  </NavLink>
-                )}
-              </li>
-            ))}
-          </ul>
+        <nav aria-label="Menu utama" className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-line bg-white px-2 pt-2 print:hidden">
+          {/* Tombol Scan dikunci di tengah; kiri & kanan berbagi ruang sisa,
+              sehingga label yang melebar tidak menggeser tombol lain. */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+            <ul className="flex items-center justify-around">{mobileNav.slice(0, 2).map((n) => <TabItem key={n.to} {...n} />)}</ul>
+            <NavLink to="/scan" aria-label="Scan QR"
+              className="-mt-7 mx-1 flex size-14 shrink-0 items-center justify-center rounded-[18px] bg-brand text-white shadow-lg shadow-brand/30 transition-transform duration-200 ease-out active:scale-95">
+              <ScanLine size={26} aria-hidden="true" />
+            </NavLink>
+            <ul className="flex items-center justify-around">{mobileNav.slice(3).map((n) => <TabItem key={n.to} {...n} />)}</ul>
+          </div>
         </nav>
       )}
     </div>

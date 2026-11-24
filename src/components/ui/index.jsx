@@ -66,14 +66,10 @@ export function Alert({ tone = 'bad', children, className }) {
   return <div role="alert" className={cn('rounded-xl px-3.5 py-2.5 text-sm font-medium', tones[tone], className)}>{children}</div>;
 }
 
-/** Logo sementara SiQura (ikon QR). */
+/** Logo SiQura: maskot kura-kura laboratorium. */
 export function Logo({ size = 36, className }) {
   return (
-    <span className={cn('inline-flex items-center justify-center rounded-[28%] bg-white', className)} style={{ width: size, height: size }}>
-      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" stroke="#0E5A5F" strokeWidth="2" aria-hidden="true">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" /><path d="M14 14h3v3M21 14v7h-7v-3" />
-      </svg>
-    </span>
+    <img src="/icons/logo-256.png" alt="" width={size} height={size}
+      className={cn('shrink-0 rounded-[28%] bg-white object-cover', className)} style={{ width: size, height: size }} />
   );
 }

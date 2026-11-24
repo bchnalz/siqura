@@ -43,3 +43,7 @@ jobs:
         run: supabase db push --remote="$PROJECT_ID" --password "$SUPABASE_DB_PASSWORD" --include-all --yes
       - name: Pasang Edge Functions
         run: supabase functions deploy --remote="$PROJECT_ID" --use-api --yes
+      - name: Siapkan kunci notifikasi & jadwal pengingat
+        run: |
+          curl -fsS -X POST "https://${PROJECT_ID}.supabase.co/functions/v1/push" \
+            -H 'Content-Type: application/json' -d '{"action":"bootstrap"}'

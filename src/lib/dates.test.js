@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, currentShift, diffDays, dueStatus, intervalLabel, todayWib } from './dates';
+import { addDays, currentShift, diffDays, dueStatus, greeting, intervalLabel, todayWib } from './dates';
 
 // 2026-11-24 17:00 UTC = 25 Nov 00.00 WIB
 const at = (s) => new Date(s);
@@ -21,8 +21,14 @@ describe('shift', () => {
     expect(currentShift(at('2026-11-24T09:30:00Z'))).toEqual({ shift: 'sore', date: '2026-11-24' }); // 16.30
     expect(currentShift(at('2026-11-24T15:00:00Z'))).toEqual({ shift: 'malam', date: '2026-11-24' }); // 22.00
   });
-  it('malam lewat tengah malam tetap tanggal sebelumnya', () => {
+  it('malam lewat tengah malam tetap tanggal sebelumnya, sampai 06.59', () => {
     expect(currentShift(at('2026-11-24T20:00:00Z'))).toEqual({ shift: 'malam', date: '2026-11-24' }); // 03.00 tgl 25
+    expect(currentShift(at('2026-11-24T23:30:00Z'))).toEqual({ shift: 'malam', date: '2026-11-24' }); // 06.30 tgl 25
+    expect(currentShift(at('2026-11-25T00:00:00Z'))).toEqual({ shift: 'pagi', date: '2026-11-25' }); // 07.00 tgl 25
+  });
+  it('sapaan mengikuti jam', () => {
+    expect(greeting(at('2026-11-24T05:00:00Z'))).toBe('Selamat siang'); // 12.00
+    expect(greeting(at('2026-11-24T09:00:00Z'))).toBe('Selamat sore'); // 16.00
   });
 });
 

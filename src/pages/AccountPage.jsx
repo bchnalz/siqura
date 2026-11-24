@@ -3,6 +3,7 @@ import { ChevronRight, ClipboardList, LogOut, QrCode, Settings2, Users } from 'l
 import { useAuth } from '@/hooks/useAuth';
 import { Badge, Button, Card } from '@/components/ui';
 import InstallHint from '@/components/InstallHint';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export default function AccountPage() {
   const { profile, user, signOut, isAdmin } = useAuth();
@@ -38,6 +39,7 @@ export default function AccountPage() {
           </Link>
         ))}
       </nav>
+      <NotificationSettings />
       <InstallHint />
       <Button variant="outline" onClick={signOut}><LogOut size={18} aria-hidden="true" /> Keluar</Button>
     </div>
