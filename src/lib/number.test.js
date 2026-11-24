@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { outOfRange, parseNumber } from './number';
+import { outOfRange, parseNumber, toggleSign } from './number';
 
 describe('angka indikator', () => {
   it('menerima koma, minus unicode, spasi', () => {
@@ -18,5 +18,15 @@ describe('angka indikator', () => {
     expect(outOfRange(-2.5, ind)).toBe(false);
     expect(outOfRange(-1, ind)).toBe(true);
     expect(outOfRange(5, { min_value: null, max_value: 8 })).toBe(false);
+  });
+});
+
+describe('tombol ±', () => {
+  it('menambah & menghapus minus', () => {
+    expect(toggleSign('12,5')).toBe('-12,5');
+    expect(toggleSign('-12,5')).toBe('12,5');
+    expect(toggleSign('−3')).toBe('3');
+    expect(toggleSign('')).toBe('-');
+    expect(parseNumber(toggleSign('12,5'))).toBe(-12.5);
   });
 });

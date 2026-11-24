@@ -4,6 +4,8 @@ import { useIndicatorsAdmin, useRoomsWithEquipment } from '@/features/master/api
 import { must, useAction } from '@/hooks/useAction';
 import { SHIFT_LABEL, SHIFTS } from '@/lib/dates';
 import { parseNumber } from '@/lib/number';
+import { isKnownUnit, UNITS } from '@/features/master/units';
+import NumberInput from '@/components/NumberInput';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
 
@@ -59,10 +61,11 @@ function IndicatorForm({ indicator, rooms, onDone }) {
   const { run, busy, error, setError } = useAction();
   const active = new Set((indicator?.targets ?? []).filter((t) => t.is_active).map((t) => (t.room_id ? `r:${t.room_id}` : `e:${t.equipment_id}`)));
   const [f, setF] = useState({
-    name: indicator?.name ?? '', unit: indicator?.unit ?? '', min: fmt(indicator?.min_value), max: fmt(indicator?.max_value),
+    name: indicator?.name ?? '', unit: indicator?.unit ?? '°C', min: fmt(indicator?.min_value), max: fmt(indicator?.max_value),
     decimals: indicator?.decimals ?? 1, shifts: indicator?.shifts ?? ['pagi', 'sore', 'malam'], is_active: indicator?.is_active ?? true,
   });
   const [sel, setSel] = useState(active);
+  const [customUnit, setCustomUnit] = useState(Boolean(indicator?.unit) && !isKnownUnit(indicator.unit));
   const toggle = (k) => setSel((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
 
   async function save(e) {
@@ -99,10 +102,23 @@ function IndicatorForm({ indicator, rooms, onDone }) {
       <form onSubmit={save} className="flex flex-col gap-3">
         <h2 className="text-[15px] font-extrabold">{indicator ? 'Ubah indikator' : 'Tambah indikator'}</h2>
         <Field label="Nama indikator"><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="mis. Suhu ruang" /></Field>
-        <div className="grid grid-cols-3 gap-2">
-          <Field label="Satuan"><Input required value={f.unit} onChange={(e) => setF({ ...f, unit: e.target.value })} placeholder="°C" /></Field>
-          <Field label="Batas min"><Input inputMode="decimal" value={f.min} onChange={(e) => setF({ ...f, min: e.target.value })} placeholder="20" /></Field>
-          <Field label="Batas maks"><Input inputMode="decimal" value={f.max} onChange={(e) => setF({ ...f, max: e.target.value })} placeholder="25" /></Field>
+        <Field label="Satuan">
+          <select value={customUnit ? '__other' : f.unit}
+            onChange={(e) => {
+              if (e.target.value === '__other') { setCustomUnit(true); setF({ ...f, unit: '' }); }
+              else { setCustomUnit(false); setF({ ...f, unit: e.target.value }); }
+            }}
+            className="h-12 rounded-xl border border-field bg-white px-3 text-[15px]">
+            {UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
+            <option value="__other">Lainnya (ketik sendiri)…</option>
+          </select>
+        </Field>
+        {customUnit && (
+          <Field label="Satuan lainnya"><Input required autoFocus value={f.unit} onChange={(e) => setF({ ...f, unit: e.target.value })} placeholder="mis. mL/menit" /></Field>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          <Field label={`Batas min (${f.unit || '…'})`}><NumberInput value={f.min} onChange={(v) => setF({ ...f, min: v })} placeholder="20" /></Field>
+          <Field label={`Batas maks (${f.unit || '…'})`}><NumberInput value={f.max} onChange={(v) => setF({ ...f, max: v })} placeholder="25" /></Field>
         </div>
         <Field label="Angka di belakang koma">
           <select value={f.decimals} onChange={(e) => setF({ ...f, decimals: Number(e.target.value) })} className="h-11 rounded-xl border border-field bg-white px-3 text-sm">

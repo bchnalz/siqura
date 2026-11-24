@@ -10,3 +10,10 @@ export function outOfRange(v, ind) {
   if (v === null || v === undefined) return false;
   return (ind.min_value != null && v < Number(ind.min_value)) || (ind.max_value != null && v > Number(ind.max_value));
 }
+
+/** Balik tanda +/− pada teks angka (keyboard angka iPhone tidak punya tombol minus). */
+export function toggleSign(text) {
+  const t = String(text ?? '').trim();
+  if (/^[-−]/.test(t)) return t.replace(/^[-−]\s*/, '');
+  return `-${t}`;
+}

@@ -7,6 +7,7 @@ import { runOrQueue } from '@/lib/outbox';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { Alert, Badge, Button, Card, Spinner } from '@/components/ui';
 import IndicatorChart from '@/components/IndicatorChart';
+import NumberInput from '@/components/NumberInput';
 import { cn } from '@/lib/cn';
 import { outOfRange, parseNumber } from '@/lib/number';
 
@@ -174,10 +175,10 @@ function ReadingForm({ targets, readings, date, shift }) {
               <span className="text-xs text-muted">Normal {rangeText(ind)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <input id={`v-${t.id}`} inputMode="decimal" autoComplete="off" value={vals[t.id].text}
-                onChange={(e) => setVals((p) => ({ ...p, [t.id]: { ...p[t.id], text: e.target.value } }))}
-                className={cn('h-12 min-w-0 flex-1 rounded-xl border border-field px-3 text-xl font-bold outline-none focus:border-brand',
-                  v === null ? 'text-ink' : out ? 'text-bad' : 'text-ok')} placeholder="—" />
+              <NumberInput id={`v-${t.id}`} value={vals[t.id].text} className="flex-1"
+                allowNegative={ind.min_value === null || Number(ind.min_value) < 0}
+                onChange={(text) => setVals((p) => ({ ...p, [t.id]: { ...p[t.id], text } }))}
+                inputClassName={cn('text-xl font-bold', v === null ? 'text-ink' : out ? 'text-bad' : 'text-ok')} placeholder="—" />
               <span className="w-12 text-sm font-semibold text-muted">{ind.unit}</span>
               {v !== null && <Badge tone={out ? 'bad' : 'ok'}>{out ? 'Di luar batas' : 'Normal'}</Badge>}
             </div>
