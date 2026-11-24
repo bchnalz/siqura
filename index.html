@@ -21,8 +21,34 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>SiQura</title>
+    <style>
+      /* Layar pembuka: tampil seketika sebelum aplikasi dimuat */
+      #splash { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        background: #0E5A5F; color: #fff; font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif; text-align: center; padding: 24px;
+        transition: opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), visibility 350ms; }
+      #splash.hide { opacity: 0; visibility: hidden; }
+      #splash img { width: 112px; height: 112px; border-radius: 30%; background: #fff; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+        animation: splash-pop 700ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+      #splash h1 { margin: 8px 0 0; font-size: 40px; font-weight: 800; letter-spacing: -0.02em; animation: splash-up 600ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+      #splash p { margin: 0; color: #D6ECEA; animation: splash-up 600ms 250ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+      #splash .t { font-size: 16px; font-weight: 600; }
+      #splash .u { font-size: 13px; max-width: 280px; line-height: 1.5; }
+      @keyframes splash-pop { from { opacity: 0; transform: scale(0.86); } to { opacity: 1; transform: scale(1); } }
+      @keyframes splash-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @media (prefers-reduced-motion: reduce) { #splash img, #splash h1, #splash p { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <img src="/icons/logo-256.png" alt="" />
+      <h1>SiQura</h1>
+      <p class="t">Sistem QR Ruangan dan Alat</p>
+      <p class="u">Laboratorium Mikrobiologi Klinik dan Biomolekuler</p>
+    </div>
+    <script>
+      // Sekali per pembukaan aplikasi (tidak muncul lagi saat pindah halaman/muat ulang)
+      try { if (sessionStorage.getItem('siqura-splash')) document.getElementById('splash').remove(); } catch (e) { /* abaikan */ }
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

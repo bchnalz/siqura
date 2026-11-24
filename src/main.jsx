@@ -24,6 +24,18 @@ function NotConfigured() {
   );
 }
 
+/** Tutup layar pembuka setelah minimal 1,5 detik sejak halaman mulai dibuka. */
+function hideSplash() {
+  const el = document.getElementById('splash');
+  if (!el) return;
+  const wait = Math.max(0, 1500 - performance.now());
+  setTimeout(() => {
+    el.classList.add('hide');
+    try { sessionStorage.setItem('siqura-splash', '1'); } catch { /* abaikan */ }
+    setTimeout(() => el.remove(), 400);
+  }, wait);
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {isConfigured ? (
@@ -37,3 +49,5 @@ createRoot(document.getElementById('root')).render(
     ) : <NotConfigured />}
   </StrictMode>,
 );
+
+hideSplash();
