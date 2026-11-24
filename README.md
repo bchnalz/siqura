@@ -18,7 +18,7 @@ Teknologi: React + Vite + Tailwind, Supabase (database, login, Edge Functions), 
 |---|---|---|
 | 1 | Database, keamanan, login, Beranda, daftar alat, link QR, PWA | ✅ |
 | 2 | Ceklis alat + matriks bulanan + riwayat, catat indikator + grafik, scan QR di aplikasi, simpan offline | ✅ |
-| 3 | Kelola master & akun (admin), kartu QR, cetak A4, dashboard desktop | ⏳ |
+| 3 | Kelola master & akun (admin), kartu QR, laporan A4 & CSV, dashboard desktop, tampilan desktop otomatis | ✅ |
 | 4 | Push notification pengingat | ⏳ |
 
 ---
@@ -48,7 +48,7 @@ update public.profiles
  where email = 'email.admin@contoh.com';
 ```
 
-Akun petugas berikutnya dibuat admin dari dalam aplikasi (tahap 3).
+Akun petugas berikutnya dibuat admin dari menu **Akun Petugas** di aplikasi.
 
 ### 4. Hosting di Vercel
 
@@ -61,7 +61,11 @@ Akun petugas berikutnya dibuat admin dari dalam aplikasi (tahap 3).
 
 > Jangan pernah memasang *service role key* di Vercel atau di kode.
 
-### 5. Link QR
+### 5. Identitas di kop laporan & kartu QR
+
+Nama instansi, unit, dan label tanda tangan laporan ada di `src/config.js`.
+
+### 6. Link QR
 
 Setiap alat punya link `https://<alamat-aplikasi>/q?eq=<id-alat>`.
 Format lama `?room=<nama ruangan>&eq=<nama alat>` juga dikenali.

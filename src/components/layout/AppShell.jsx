@@ -17,10 +17,10 @@ const desktopNav = [
   { to: '/', label: 'Dashboard', icon: BarChart3, end: true },
   { to: '/alat', label: 'Ruangan & Alat', icon: FlaskConical },
   { to: '/indikator', label: 'Indikator & Grafik', icon: LineChart },
-  { to: '/laporan', label: 'Laporan & Cetak', icon: ClipboardList, soon: true },
-  { to: '/qr', label: 'Kartu QR', icon: QrCode, admin: true, soon: true },
+  { to: '/laporan', label: 'Laporan & Cetak', icon: ClipboardList },
+  { to: '/qr', label: 'Kartu QR', icon: QrCode, admin: true },
   { to: '/master', label: 'Kelola Master', icon: Settings2, admin: true },
-  { to: '/petugas', label: 'Akun Petugas', icon: Users, admin: true, soon: true },
+  { to: '/petugas', label: 'Akun Petugas', icon: Users, admin: true },
 ];
 
 function DesktopShell() {
@@ -36,7 +36,7 @@ function DesktopShell() {
           </div>
         </div>
         <nav aria-label="Menu utama" className="flex flex-col gap-1">
-          {desktopNav.filter((n) => !n.soon && (!n.admin || isAdmin)).map(({ to, label, icon: Icon, end }) => (
+          {desktopNav.filter((n) => !n.admin || isAdmin).map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm',
                 isActive ? 'bg-brand-tint font-bold text-white' : 'font-semibold text-on-brand-muted hover:bg-brand-tint/60')}>
@@ -58,8 +58,8 @@ function DesktopShell() {
           <p className="text-xs leading-relaxed text-on-brand-muted">{APP.unit}</p>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 bg-ground">
-        <div className="mx-auto w-full max-w-6xl px-8 py-6"><Outlet /></div>
+      <main className="min-w-0 flex-1 bg-ground print:bg-white">
+        <div className="mx-auto w-full max-w-6xl px-8 py-6 print:max-w-none print:p-0"><Outlet /></div>
       </main>
     </div>
   );
@@ -77,7 +77,7 @@ function MobileShell() {
   const onEquipment = useMatch('/alat/:id');
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ground">
-      <main className={cn('flex-1', !onEquipment && 'pb-24')}><Outlet /></main>
+      <main className={cn('flex-1 print:pb-0', !onEquipment && 'pb-24')}><Outlet /></main>
       {!onEquipment && (
         <nav aria-label="Menu utama" className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-line bg-white print:hidden">
           <ul className="grid grid-cols-5 items-end">

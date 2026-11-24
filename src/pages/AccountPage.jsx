@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, LogOut, Settings2 } from 'lucide-react';
+import { ChevronRight, ClipboardList, LogOut, QrCode, Settings2, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge, Button, Card } from '@/components/ui';
 import InstallHint from '@/components/InstallHint';
@@ -22,16 +22,22 @@ export default function AccountPage() {
       {!profile?.initials && (
         <Card className="p-4 text-sm text-muted">Inisial paraf Anda belum diisi. Minta admin melengkapinya.</Card>
       )}
-      {isAdmin && (
-        <nav aria-label="Menu admin" className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white">
-          <h2 className="px-4 pt-3 pb-1 text-xs font-bold text-muted">Admin</h2>
-          <Link to="/master" className="flex min-h-14 items-center gap-3 px-4 text-sm font-semibold hover:bg-ground">
-            <Settings2 size={18} className="text-brand" aria-hidden="true" />
-            <span className="flex-1">Kelola Master<span className="block text-xs font-normal text-muted">Ruangan, alat, kegiatan, indikator</span></span>
+      <nav aria-label="Menu lainnya" className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
+        {[
+          { to: '/laporan', icon: ClipboardList, label: 'Laporan & Cetak', sub: 'Form bulanan A4 dan CSV' },
+          ...(isAdmin ? [
+            { to: '/master', icon: Settings2, label: 'Kelola Master', sub: 'Ruangan, alat, kegiatan, indikator' },
+            { to: '/petugas', icon: Users, label: 'Akun Petugas', sub: 'Tambah petugas, peran, kata sandi' },
+            { to: '/qr', icon: QrCode, label: 'Kartu QR', sub: 'Cetak & unduh stiker QR alat' },
+          ] : []),
+        ].map(({ to, icon: Icon, label, sub }) => (
+          <Link key={to} to={to} className="flex min-h-14 items-center gap-3 px-4 py-2 text-sm font-semibold hover:bg-ground">
+            <Icon size={18} className="text-brand" aria-hidden="true" />
+            <span className="flex-1">{label}<span className="block text-xs font-normal text-muted">{sub}</span></span>
             <ChevronRight size={18} className="text-subtle" aria-hidden="true" />
           </Link>
-        </nav>
-      )}
+        ))}
+      </nav>
       <InstallHint />
       <Button variant="outline" onClick={signOut}><LogOut size={18} aria-hidden="true" /> Keluar</Button>
     </div>

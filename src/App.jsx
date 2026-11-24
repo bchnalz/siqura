@@ -16,6 +16,9 @@ import AccountPage from '@/pages/AccountPage';
 const ScanPage = lazy(() => import('@/pages/ScanPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const MasterPage = lazy(() => import('@/pages/master/MasterPage'));
+const StaffPage = lazy(() => import('@/pages/StaffPage'));
+const QrCardsPage = lazy(() => import('@/pages/QrCardsPage'));
+const ReportsPage = lazy(() => import('@/pages/ReportsPage'));
 const Loading = () => <div className="flex min-h-[50dvh] items-center justify-center"><Spinner /></div>;
 
 function RequireAuth({ children }) {
@@ -45,6 +48,9 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="alat/:id" element={<EquipmentPage />} />
             <Route path="master" element={<MasterPage />} />
+            <Route path="petugas" element={<StaffPage />} />
+            <Route path="qr" element={<QrCardsPage />} />
+            <Route path="laporan" element={<ReportsPage />} />
             <Route path="alat" element={<EquipmentListPage />} />
             <Route path="scan" element={<ScanPage />} />
             <Route path="indikator" element={<IndicatorPage />} />

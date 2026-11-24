@@ -6,4 +6,7 @@ export const APP = {
   unit: 'Laboratorium Mikrobiologi Klinik dan Biomolekuler',
   institution: 'RSUD R.T. Notopuro Sidoarjo',
   government: 'Pemerintah Kabupaten Sidoarjo',
+  // kolom tanda tangan pada laporan cetak
+  signLeft: 'Penanggung Jawab Ruangan / Alat',
+  signRight: 'Kepala Instalasi Laboratorium',
 };

@@ -84,6 +84,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-extrabold">Dashboard</h1>
           <p className="text-[13px] text-muted">{formatLongDate(today)} · Shift {SHIFT_LABEL[shift]} · {profile?.full_name}</p>
         </div>
+        <Link to="/laporan" className="inline-flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-brand-strong">Laporan &amp; cetak A4</Link>
       </header>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
       {q.isPending && <div className="flex justify-center py-16"><Spinner /></div>}
