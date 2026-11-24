@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // Khusus iPhone/iPad: cegah zoom otomatis saat membuka halaman & memilih kolom isian.
+      // iOS tetap mengizinkan cubit-zoom manual, jadi aksesibilitas tidak hilang.
+      // Android tidak disentuh agar cubit-zoom di sana tetap berfungsi.
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        document.querySelector('meta[name=viewport]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover');
+      }
+    </script>
     <meta name="theme-color" content="#0E5A5F" />
     <meta name="description" content="SiQura — Sistem QR Ruangan dan Alat, Laboratorium Mikrobiologi Klinik dan Biomolekuler" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

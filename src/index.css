@@ -35,6 +35,14 @@
 }
 
 html, body, #root { min-height: 100%; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Safari iPhone/iPad memperbesar layar bila huruf kolom isian < 16px.
+   Di perangkat sentuh & layar kecil semua kolom isian dibuat 16px.
+   (Di luar @layer agar mengalahkan kelas ukuran huruf Tailwind.) */
+@media (pointer: coarse), (max-width: 1023px) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px; }
+}
 body {
   margin: 0;
   background: var(--color-ground);
