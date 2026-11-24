@@ -5,7 +5,10 @@ import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
-self.skipWaiting();
+// Versi baru menunggu sampai pengguna menekan "Muat ulang" (lihat UpdatePrompt).
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 
 cleanupOutdatedCaches();

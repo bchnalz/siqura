@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui';
 import AppShell from '@/components/layout/AppShell';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import SyncBanner from '@/components/SyncBanner';
+import UpdatePrompt from '@/components/UpdatePrompt';
 import LoginPage from '@/pages/LoginPage';
 import HomePage from '@/pages/HomePage';
 import EquipmentListPage from '@/pages/EquipmentListPage';
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <>
       <SyncBanner />
+      <UpdatePrompt />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

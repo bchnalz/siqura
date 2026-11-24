@@ -13,7 +13,7 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       injectRegister: false,
       includeAssets: ['icons/favicon-48.png', 'icons/apple-touch-icon.png', 'icons/logo-256.png'],
       manifest: {
