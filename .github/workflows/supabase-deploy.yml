@@ -2,6 +2,7 @@ name: Deploy Supabase
 
 # Memasang perubahan database & Edge Function ke Supabase secara otomatis
 # setiap ada perubahan di folder supabase/ pada branch main.
+# Bisa juga dijalankan manual: tab Actions → Deploy Supabase → Run workflow.
 on:
   push:
     branches: [main]
