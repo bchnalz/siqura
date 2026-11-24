@@ -160,6 +160,51 @@ ok((await as(admin, `delete from activities where id=$1 returning id`, [aMonthly
 ok((await one(`select count(*)::int n from checks where activity_id=$1`, [aMonthly])).n === 0 && before > 0, 'isian kegiatan yang dihapus ikut terhapus');
 ok((await one(`select count(*)::int n from audit_log where table_name='activities' and action='DELETE' and old_data->>'id'=$1`, [aMonthly])).n === 1, 'penghapusan kegiatan tercatat di riwayat');
 
+// ---------------- Master Jenis Alat ----------------
+await fails(as(rina, `insert into equipment_types(name) values ('X')`), /row-level security/, 'petugas tidak bisa membuat jenis alat');
+const tInk = (await as(admin, `insert into equipment_types(name, category) values ('Inkubator','Inkubator') returning id`)).rows[0].id;
+const ta1 = (await as(admin, `insert into type_activities(type_id,name,interval_days,sort_order) values ($1,'Cek suhu display',1,1) returning id`, [tInk])).rows[0].id;
+const ta2 = (await as(admin, `insert into type_activities(type_id,name,interval_days,sort_order) values ($1,'Bersihkan rak',30,2) returning id`, [tInk])).rows[0].id;
+const indInk = (await as(admin, `insert into indicators(name,unit,min_value,max_value,shifts) values ('Suhu inkubator','°C',35,37,'{pagi,sore}') returning id`)).rows[0].id;
+await as(admin, `insert into type_indicators(type_id,indicator_id) values ($1,$2)`, [tInk, indInk]);
+const roomB = (await as(admin, `insert into rooms(name) values ('Lab Bakteriologi') returning id`)).rows[0].id;
+// unit baru dari jenis: kegiatan & indikator ikut otomatis
+const u1 = (await as(admin, `insert into equipment(room_id,name,category,type_id) values ($1,'Inkubator','Inkubator',$2) returning id`, [room, tInk])).rows[0].id;
+const u2 = (await as(admin, `insert into equipment(room_id,name,category,type_id) values ($1,'Inkubator','Inkubator',$2) returning id`, [roomB, tInk])).rows[0].id;
+const acts = async (u) => (await db.query(`select name, interval_days, is_active from activities where equipment_id=$1 order by sort_order`, [u])).rows;
+ok((await acts(u1)).length === 2 && (await acts(u2)).length === 2, 'unit baru langsung punya kegiatan dari jenis');
+ok((await one(`select count(*)::int n from indicator_targets where equipment_id=$1 and indicator_id=$2 and is_active and from_type`, [u2, indInk])).n === 1, 'unit baru langsung punya indikator dari jenis');
+// ubah di jenis → semua unit ikut
+await as(admin, `update type_activities set interval_days=14, name='Bersihkan rak & dinding' where id=$1`, [ta2]);
+ok((await acts(u1))[1].interval_days === 14 && (await acts(u2))[1].name === 'Bersihkan rak & dinding', 'perubahan kegiatan jenis ikut ke semua unit');
+await as(admin, `insert into type_activities(type_id,name,interval_days,sort_order) values ($1,'Kalibrasi',365,3)`, [tInk]);
+ok((await acts(u1)).length === 3 && (await acts(u2)).length === 3, 'kegiatan baru di jenis ikut ke semua unit');
+// unit boleh punya kegiatan tambahan sendiri; tidak ikut ke unit lain
+await as(admin, `insert into activities(equipment_id,name,interval_days) values ($1,'Ganti air wadah CO2',7)`, [u1]);
+ok((await acts(u1)).length === 4 && (await acts(u2)).length === 3, 'kegiatan khusus unit tidak menyebar');
+// hapus kegiatan jenis: unit yang sudah diisi → nonaktif (riwayat aman); yang belum → terhapus
+const u1ta1 = (await one(`select id from activities where equipment_id=$1 and type_activity_id=$2`, [u1, ta1])).id;
+await as(rina, `insert into checks(equipment_id,activity_id,check_date,status) values ($1,$2,today_wib(),'done')`, [u1, u1ta1]);
+await as(admin, `delete from type_activities where id=$1`, [ta1]);
+ok((await one(`select is_active from activities where id=$1`, [u1ta1])).is_active === false, 'kegiatan jenis dihapus: unit yang sudah diisi dinonaktifkan');
+ok((await one(`select count(*)::int n from checks where activity_id=$1`, [u1ta1])).n === 1, 'riwayat ceklis tetap ada');
+ok((await one(`select count(*)::int n from activities where equipment_id=$1 and name='Cek suhu display'`, [u2])).n === 0, 'kegiatan jenis dihapus: unit yang belum diisi ikut terhapus');
+// lepas indikator dari jenis → nonaktif di unit
+await as(admin, `delete from type_indicators where type_id=$1 and indicator_id=$2`, [tInk, indInk]);
+ok((await one(`select count(*)::int n from indicator_targets where indicator_id=$1 and is_active`, [indInk])).n === 0, 'indikator dilepas dari jenis → nonaktif di semua unit');
+// kategori jenis berubah → unit ikut
+await as(admin, `update equipment_types set category='Inkubator CO2' where id=$1`, [tInk]);
+ok((await one(`select category from equipment where id=$1`, [u2])).category === 'Inkubator CO2', 'kategori jenis ikut ke unit');
+// jadikan alat lama sebagai jenis
+await fails(as(rina, `select create_type_from_equipment($1,'BSC')`, [eq]), /Hanya admin/, 'petugas tidak bisa membuat jenis dari alat');
+const before2 = (await acts(eq)).filter((a) => a.is_active).length;
+const tBsc = (await as(admin, `select create_type_from_equipment($1,'Biosafety Cabinet II') id`, [eq])).rows[0].id;
+ok((await one(`select count(*)::int n from type_activities where type_id=$1`, [tBsc])).n === before2 && before2 > 0, 'jenis dibuat dari kegiatan alat yang ada');
+ok((await one(`select count(*)::int n from activities where equipment_id=$1 and is_active`, [eq])).n === before2, 'alat asal tidak mendapat kegiatan ganda');
+const u3 = (await as(admin, `insert into equipment(room_id,name,type_id) values ($1,'BSC-II B',$2) returning id`, [roomB, tBsc])).rows[0].id;
+ok((await acts(u3)).length === before2, 'unit baru dari jenis hasil konversi mendapat kegiatan yang sama');
+await fails(as(admin, `select create_type_from_equipment($1,'X')`, [eq]), /sudah punya jenis/, 'alat yang sudah berjenis tidak bisa dikonversi lagi');
+
 // Tanpa login (anon) tidak bisa membaca apa pun
 await db.exec('set role anon');
 await fails(db.query('select * from rooms'), /permission denied/, 'anon tidak bisa membaca ruangan');

@@ -11,7 +11,7 @@ export function useEquipment(id) {
   return useQuery({
     queryKey: ['master', 'equipment', id],
     queryFn: () => rows(supabase.from('equipment')
-      .select('id,name,category,sop_note,room:rooms(id,name,sop_note)').eq('id', id).single()),
+      .select('id,name,category,sop_note,room:rooms(id,name,sop_note),type:equipment_types(name,sop_note)').eq('id', id).single()),
   });
 }
 

@@ -4,17 +4,19 @@ import { cn } from '@/lib/cn';
 import RoomsTab from './RoomsTab';
 import ActivitiesTab from './ActivitiesTab';
 import IndicatorsTab from './IndicatorsTab';
+import TypesTab from './TypesTab';
 
 const TABS = [
+  { id: 'jenis', label: 'Jenis Alat' },
   { id: 'ruangan', label: 'Ruangan & Alat' },
-  { id: 'kegiatan', label: 'Kegiatan' },
+  { id: 'kegiatan', label: 'Kegiatan per alat' },
   { id: 'indikator', label: 'Indikator' },
 ];
 
 export default function MasterPage() {
   const { isAdmin } = useAuth();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') || 'ruangan';
+  const tab = params.get('tab') || 'jenis';
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
@@ -30,6 +32,7 @@ export default function MasterPage() {
           </button>
         ))}
       </div>
+      {tab === 'jenis' && <TypesTab />}
       {tab === 'ruangan' && <RoomsTab />}
       {tab === 'kegiatan' && <ActivitiesTab initialEquipment={params.get('alat')} />}
       {tab === 'indikator' && <IndicatorsTab />}

@@ -181,10 +181,10 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
           );
         })}
 
-        {(equipment.sop_note || equipment.room?.sop_note) && (
+        {(equipment.sop_note || equipment.type?.sop_note || equipment.room?.sop_note) && (
           <div className="rounded-xl bg-brand-soft px-3.5 py-3">
             <p className="text-xs font-bold text-brand">Catatan SOP</p>
-            <p className="text-xs leading-relaxed whitespace-pre-line text-ink-soft">{equipment.sop_note || equipment.room.sop_note}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-line text-ink-soft">{equipment.sop_note || equipment.type?.sop_note || equipment.room.sop_note}</p>
           </div>
         )}
       </div>
