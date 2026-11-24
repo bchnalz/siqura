@@ -128,6 +128,7 @@ function TypeEditor({ type, types, onDeleted }) {
       <Card className="flex flex-col gap-1.5 p-4">
         <h2 className="text-[15px] font-extrabold">Dipakai di {type.unitCount} unit</h2>
         <p className="text-sm text-muted">{units.length ? units.join(' · ') : 'Belum ada. Tambahkan unit dari tab Ruangan & Alat → Tambah alat.'}</p>
+        <AttachExisting type={type} rooms={rooms.data ?? []} />
       </Card>
       <TypeIndicators type={type} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
@@ -168,5 +169,60 @@ function TypeIndicators({ type }) {
       )}
       {error && <Alert>{error}</Alert>}
     </Card>
+  );
+}
+
+/** Pasangkan alat lama (belum berjenis) ke jenis ini sekaligus.
+ *  Kegiatan bernama sama otomatis disambungkan sehingga riwayatnya berlanjut. */
+function AttachExisting({ type, rooms }) {
+  const { run, busy, error } = useAction();
+  const [open, setOpen] = useState(false);
+  const [sel, setSel] = useState(new Set());
+  const groups = rooms.map((r) => ({ room: r, items: r.equipment.filter((e) => !e.type_id && e.is_active) })).filter((g) => g.items.length);
+  const count = groups.reduce((n, g) => n + g.items.length, 0);
+  if (!count) return null;
+  const toggle = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const guess = (name) => name.toLowerCase().includes(type.name.toLowerCase().split(' ')[0]);
+
+  async function attach() {
+    const ids = [...sel];
+    if (await run(() => must(supabase.from('equipment').update({ type_id: type.id }).in('id', ids)))) { setSel(new Set()); setOpen(false); }
+  }
+
+  if (!open) {
+    return (
+      <Button variant="outline" size="sm" className="mt-1 self-start" onClick={() => {
+        setSel(new Set(groups.flatMap((g) => g.items).filter((e) => guess(e.name)).map((e) => e.id))); setOpen(true);
+      }}>
+        Pasangkan alat yang sudah ada ({count} alat belum berjenis)
+      </Button>
+    );
+  }
+  return (
+    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-field p-3">
+      <p className="text-xs text-muted">
+        Pilih alat lama yang termasuk jenis <b>{type.name}</b>. Kegiatan dengan nama yang sama disambungkan ke jenis (riwayat berlanjut);
+        kegiatan lain tetap sebagai kegiatan khusus unit dan bisa dihapus bila tidak perlu.
+      </p>
+      <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
+        {groups.map((g) => (
+          <div key={g.room.id} className="flex flex-col gap-1">
+            <span className="text-xs font-bold text-muted">{g.room.name}</span>
+            {g.items.map((e) => (
+              <label key={e.id} className={cn('flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3 text-sm',
+                sel.has(e.id) ? 'border-brand bg-brand-soft font-semibold' : 'border-line')}>
+                <input type="checkbox" checked={sel.has(e.id)} onChange={() => toggle(e.id)} className="size-4 accent-brand" />
+                {e.name}{e.category ? <span className="font-normal text-muted"> · {e.category}</span> : null}
+              </label>
+            ))}
+          </div>
+        ))}
+      </div>
+      {error && <Alert>{error}</Alert>}
+      <div className="flex gap-2">
+        <Button size="sm" disabled={busy || !sel.size} onClick={attach}>{busy ? 'Memasangkan…' : `Pasangkan ${sel.size} alat`}</Button>
+        <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Batal</Button>
+      </div>
+    </div>
   );
 }

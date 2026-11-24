@@ -205,6 +205,24 @@ const u3 = (await as(admin, `insert into equipment(room_id,name,type_id) values 
 ok((await acts(u3)).length === before2, 'unit baru dari jenis hasil konversi mendapat kegiatan yang sama');
 await fails(as(admin, `select create_type_from_equipment($1,'X')`, [eq]), /sudah punya jenis/, 'alat yang sudah berjenis tidak bisa dikonversi lagi');
 
+// Alat lama (diisi manual) dipasangkan ke jenis: kegiatan bernama sama disambungkan, tidak ganda
+const old = (await as(admin, `insert into equipment(room_id,name) values ($1,'Inkubator lama') returning id`, [roomB])).rows[0].id;
+const oldAct = (await as(admin, `insert into activities(equipment_id,name,interval_days) values ($1,'  bersihkan rak & DINDING dalam ',30) returning id`, [old])).rows[0].id;
+await as(admin, `insert into activities(equipment_id,name,interval_days) values ($1,'Cek kipas',7)`, [old]);
+await as(rina, `insert into checks(equipment_id,activity_id,check_date,status) values ($1,$2,today_wib(),'done')`, [old, oldAct]);
+await as(admin, `update type_activities set name='Bersihkan rak & dinding dalam' where id=$1`, [ta2]);
+await as(admin, `update equipment set type_id=$1 where id=$2`, [tInk, old]);
+const linked = (await db.query(`select id, name, interval_days, type_activity_id from activities where equipment_id=$1 and is_active order by sort_order, name`, [old])).rows;
+ok(linked.filter((a) => /rak/i.test(a.name)).length === 1, 'kegiatan bernama sama tidak menjadi ganda');
+const lk = linked.find((a) => a.id === oldAct);
+ok(lk && lk.type_activity_id === ta2 && lk.interval_days === 14 && lk.name === 'Bersihkan rak & dinding dalam', 'kegiatan lama disambungkan ke jenis & mengikuti nama/interval jenis');
+ok((await one(`select count(*)::int n from checks where activity_id=$1`, [oldAct])).n === 1, 'riwayat kegiatan lama tetap tersambung');
+ok(linked.some((a) => a.name === 'Cek kipas' && a.type_activity_id === null), 'kegiatan yang tidak ada di jenis tetap sebagai kegiatan khusus unit');
+// kegiatan baru di jenis dengan nama yang sudah ada di unit → disambungkan juga
+await as(admin, `insert into activities(equipment_id,name,interval_days) values ($1,'Uji kontaminasi',30)`, [u2]);
+await as(admin, `insert into type_activities(type_id,name,interval_days,sort_order) values ($1,'Uji Kontaminasi',30,9)`, [tInk]);
+ok((await one(`select count(*)::int n from activities where equipment_id=$1 and lower(name)='uji kontaminasi'`, [u2])).n === 1, 'kegiatan jenis baru menyambung ke kegiatan unit bernama sama');
+
 // Tanpa login (anon) tidak bisa membaca apa pun
 await db.exec('set role anon');
 await fails(db.query('select * from rooms'), /permission denied/, 'anon tidak bisa membaca ruangan');
