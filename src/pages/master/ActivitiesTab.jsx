@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowDown, ArrowUp, EyeOff, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowDown, ArrowUp, RotateCcw, Trash2 } from 'lucide-react';
 import { useActivities, useRoomsWithEquipment } from '@/features/master/api';
 import { parseBulk, TEMPLATES } from '@/features/master/templates';
 import { must, useAction } from '@/hooks/useAction';
@@ -74,14 +74,15 @@ function ActivityList({ equipment }) {
         </button>
       )}
       {showInactive && inactive.map((a) => (
-        <div key={a.id} className="flex items-center gap-2 rounded-xl border border-dashed border-field px-3 py-2 text-sm text-muted">
+        <div key={a.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-field px-3 py-2 text-sm text-muted">
           <span className="flex-1">{a.name} · {a.interval_days} hari</span>
           <Button variant="ghost" size="sm" onClick={() => run(() => must(supabase.from('activities').update({ is_active: true, sort_order: active.length + 1 }).eq('id', a.id)))}>
             <RotateCcw size={15} aria-hidden="true" /> Aktifkan
           </Button>
+          <InactiveDelete a={a} run={run} />
         </div>
       ))}
-      <p className="text-xs text-muted">Kegiatan yang dinonaktifkan hilang dari ceklis, tetapi riwayat isiannya tetap tersimpan.</p>
+      <p className="text-xs text-muted">Kegiatan yang dinonaktifkan hilang dari ceklis, tetapi riwayat isiannya tetap tersimpan untuk laporan. Hapus permanen hanya untuk kegiatan yang salah input.</p>
     </div>
   );
 }
@@ -91,6 +92,7 @@ function ActivityRow({ a, index, last, onMove, run }) {
   const [days, setDays] = useState(String(a.interval_days));
   const dirty = name.trim() !== a.name || Number(days) !== a.interval_days;
   const valid = name.trim() && Number(days) >= 1 && Number(days) <= 3650;
+  const [removing, setRemoving] = useState(false);
   return (
     <Card className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-2 p-3 lg:grid-cols-[20px_minmax(0,1fr)_auto_auto] lg:items-center">
       <span className="tnum pt-3 text-right text-xs font-bold text-subtle lg:pt-0">{index + 1}</span>
@@ -106,11 +108,12 @@ function ActivityRow({ a, index, last, onMove, run }) {
       <div className="col-start-3 row-span-2 row-start-1 flex flex-col lg:col-start-4 lg:row-span-1 lg:flex-row lg:items-center">
         <Button variant="ghost" size="sm" aria-label="Naikkan" disabled={index === 0} onClick={() => onMove(index, -1)}><ArrowUp size={15} aria-hidden="true" /></Button>
         <Button variant="ghost" size="sm" aria-label="Turunkan" disabled={last} onClick={() => onMove(index, 1)}><ArrowDown size={15} aria-hidden="true" /></Button>
-        <Button variant="ghost" size="sm" aria-label={`Nonaktifkan ${a.name}`} title="Nonaktifkan" className="text-muted"
-          onClick={() => window.confirm(`Nonaktifkan “${a.name}”?`) && run(() => must(supabase.from('activities').update({ is_active: false }).eq('id', a.id)))}>
-          <EyeOff size={15} aria-hidden="true" />
+        <Button variant="ghost" size="sm" aria-label={`Hapus ${a.name}`} title="Hapus" aria-expanded={removing}
+          className={removing ? 'bg-bad-soft text-bad' : 'text-bad'} onClick={() => setRemoving(!removing)}>
+          <Trash2 size={15} aria-hidden="true" />
         </Button>
       </div>
+      {removing && <RemoveActivity a={a} run={run} onCancel={() => setRemoving(false)} />}
       {dirty && (
         <div className="col-span-full flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={() => { setName(a.name); setDays(String(a.interval_days)); }}>Batal</Button>
@@ -121,6 +124,71 @@ function ActivityRow({ a, index, last, onMove, run }) {
         </div>
       )}
     </Card>
+  );
+}
+
+/** Jumlah isian ceklis milik sebuah kegiatan (riwayat yang ikut terhapus). */
+async function countChecks(activityId) {
+  const { count, error } = await supabase.from('checks').select('id', { count: 'exact', head: true }).eq('activity_id', activityId);
+  if (error) throw error;
+  return count; // null = tidak terbaca → diperlakukan sebagai punya riwayat
+}
+
+/** Panel hapus di dalam baris: kegiatan tanpa riwayat langsung dihapus;
+ *  yang sudah punya isian ditawari nonaktifkan agar laporan lama tetap utuh. */
+function RemoveActivity({ a, run, onCancel }) {
+  const [state, setState] = useState({ loading: true, count: null });
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    let alive = true;
+    countChecks(a.id).then((n) => alive && setState({ loading: false, count: n })).catch((e) => alive && setErr(friendlyError(e)));
+    return () => { alive = false; };
+  }, [a.id]);
+  const { loading, count } = state;
+  const hasHistory = !loading && count !== 0; // termasuk bila jumlahnya tidak terbaca
+  const del = () => run(() => must(supabase.from('activities').delete().eq('id', a.id)));
+  const deactivate = () => run(() => must(supabase.from('activities').update({ is_active: false }).eq('id', a.id)));
+
+  return (
+    <div role="alertdialog" aria-label={`Hapus ${a.name}`} className="col-span-full flex flex-col gap-2 rounded-xl border border-bad-line bg-bad-soft p-3">
+      {err && <p className="text-sm text-bad">{err}</p>}
+      {loading && !err && <p className="text-sm text-muted">Memeriksa riwayat…</p>}
+      {!loading && count === 0 && (
+        <>
+          <p className="text-sm font-semibold text-bad-strong">Hapus “{a.name}”? Kegiatan ini belum punya isian ceklis.</p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={onCancel}>Batal</Button>
+            <Button variant="danger" size="sm" onClick={del}><Trash2 size={15} aria-hidden="true" /> Hapus</Button>
+          </div>
+        </>
+      )}
+      {hasHistory && (
+        <>
+          <p className="text-sm text-bad-strong">
+            <b>“{a.name}” {count ? `sudah punya ${count} isian ceklis` : 'mungkin sudah punya isian ceklis'}.</b> Menghapusnya ikut menghapus riwayat itu dari matriks dan laporan.
+            Bila kegiatan sudah tidak dipakai, cukup <b>nonaktifkan</b>.
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={onCancel}>Batal</Button>
+            <Button variant="outline" size="sm" onClick={deactivate}>Nonaktifkan (riwayat tetap)</Button>
+            <Button variant="danger" size="sm"
+              onClick={() => window.confirm(`Hapus permanen “${a.name}” beserta ${count ?? 'semua'} isian ceklisnya? Tindakan ini tidak bisa dibatalkan.`) && del()}>
+              Hapus permanen
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function InactiveDelete({ a, run }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button variant="ghost" size="sm" className="text-bad" aria-label={`Hapus ${a.name}`} onClick={() => setOpen(!open)}><Trash2 size={15} aria-hidden="true" /></Button>
+      {open && <div className="basis-full"><RemoveActivity a={a} run={run} onCancel={() => setOpen(false)} /></div>}
+    </>
   );
 }
 

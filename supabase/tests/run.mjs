@@ -153,6 +153,13 @@ const jobs = (await db.query(`select jobname, schedule, command from cron.job or
 ok(jobs.length === 2 && jobs[0].schedule === '0 1 * * *' && jobs[1].schedule === '0 8 * * *' && jobs[1].command.includes("'sore'") && jobs[0].command.includes('x-siqura-cron'),
   'jadwal 08.00 & 15.00 WIB terpasang sekali (idempoten)');
 
+// Hapus kegiatan: hanya admin; isian ikut terhapus tetapi tercatat di riwayat
+const before = (await one(`select count(*)::int n from checks where activity_id=$1`, [aMonthly])).n;
+ok((await as(rina, `delete from activities where id=$1 returning id`, [aMonthly])).rows.length === 0, 'petugas tidak bisa menghapus kegiatan');
+ok((await as(admin, `delete from activities where id=$1 returning id`, [aMonthly])).rows.length === 1, 'admin bisa menghapus kegiatan');
+ok((await one(`select count(*)::int n from checks where activity_id=$1`, [aMonthly])).n === 0 && before > 0, 'isian kegiatan yang dihapus ikut terhapus');
+ok((await one(`select count(*)::int n from audit_log where table_name='activities' and action='DELETE' and old_data->>'id'=$1`, [aMonthly])).n === 1, 'penghapusan kegiatan tercatat di riwayat');
+
 // Tanpa login (anon) tidak bisa membaca apa pun
 await db.exec('set role anon');
 await fails(db.query('select * from rooms'), /permission denied/, 'anon tidak bisa membaca ruangan');
