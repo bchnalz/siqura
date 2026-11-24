@@ -22,14 +22,8 @@ await db.exec(`
 for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
   await db.exec(fs.readFileSync(path.join(dir, f), 'utf8'));
 }
-// Hak dasar seperti yang diberikan Supabase
-await db.exec(`
-  grant usage on schema public to authenticated;
-  grant select, insert, update, delete on all tables in schema public to authenticated;
-  revoke update on public.profiles from authenticated;
-  grant update (full_name, initials) on public.profiles to authenticated;
-  grant usage on all sequences in schema public to authenticated;
-`);
+// Sengaja TIDAK memberi hak tabel di sini: seperti proyek Supabase baru,
+// semua hak akses harus datang dari migration itu sendiri.
 
 let passed = 0;
 async function as(uid, sql, params) {
@@ -128,6 +122,11 @@ ok(comp.length === 1 && comp[0].daily_total === 1, 'kegiatan harian baru dihitun
 await fails(as(rina, `select reset_month($1,2026,1)`, [eq]), /Hanya admin/, 'reset hanya admin');
 const audit = (await as(rina, `select table_name, action, user_label from audit_log order by id`)).rows;
 ok(audit.some((a) => a.table_name === 'checks' && a.action === 'DELETE' && a.user_label === 'Rina S'), 'riwayat mencatat penghapusan');
-ok((await as(admin, `delete from audit_log returning id`)).rows.length === 0, 'riwayat tidak bisa dihapus');
+await fails(as(admin, `delete from audit_log`), /permission denied/, 'riwayat tidak bisa dihapus, bahkan oleh admin');
+
+// Tanpa login (anon) tidak bisa membaca apa pun
+await db.exec('set role anon');
+await fails(db.query('select * from rooms'), /permission denied/, 'anon tidak bisa membaca ruangan');
+await db.exec('reset role');
 
 console.log(`✓ ${passed} uji database lulus`);
