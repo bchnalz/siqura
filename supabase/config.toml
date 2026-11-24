@@ -1,0 +1,5 @@
+# Konfigurasi minimal untuk Supabase CLI (link, db push, functions deploy)
+project_id = "siqura"
+
+[functions.admin-users]
+verify_jwt = true

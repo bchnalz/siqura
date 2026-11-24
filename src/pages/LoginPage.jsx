@@ -1,0 +1,63 @@
+import { useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { friendlyError } from '@/lib/supabase';
+import { Alert, Button, Field, Input, Logo } from '@/components/ui';
+import InstallHint from '@/components/InstallHint';
+
+export default function LoginPage() {
+  const { session, signIn } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const next = location.state?.from || '/';
+
+  if (session) return <Navigate to={next} replace />;
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setBusy(true); setError('');
+    const { error: err } = await signIn(email.trim(), password);
+    setBusy(false);
+    if (err) setError(friendlyError(err));
+    else navigate(next, { replace: true });
+  }
+
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-brand">
+      <header className="flex flex-col gap-4 px-7 pt-14 pb-8 text-white">
+        <Logo size={64} />
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[34px] font-extrabold tracking-tight">SiQura</h1>
+          <p className="text-[15px] font-semibold text-[#DDF0EE]">Sistem QR Ruangan dan Alat</p>
+          <p className="text-[13px] leading-relaxed text-[#B9DAD7]">Laboratorium Mikrobiologi Klinik dan Biomolekuler</p>
+        </div>
+      </header>
+
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-4 rounded-t-[28px] bg-white px-6 pt-7 pb-8">
+        <div>
+          <h2 className="text-xl font-bold">Masuk</h2>
+          <p className="text-[13px] text-muted">Gunakan akun yang dibuatkan admin.</p>
+        </div>
+        {location.state?.from?.startsWith('/q') && (
+          <Alert tone="brand">Masuk dulu, lalu halaman alat dari QR akan langsung terbuka.</Alert>
+        )}
+        <Field label="Email">
+          <Input type="email" autoComplete="username" inputMode="email" required value={email}
+            onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" />
+        </Field>
+        <Field label="Kata sandi">
+          <Input type="password" autoComplete="current-password" required value={password}
+            onChange={(e) => setPassword(e.target.value)} />
+        </Field>
+        {error && <Alert>{error}</Alert>}
+        <Button type="submit" size="lg" disabled={busy}>{busy ? 'Memproses…' : 'Masuk'}</Button>
+        <p className="text-center text-xs text-muted">Lupa kata sandi? Hubungi admin laboratorium.</p>
+        <InstallHint className="mt-auto" />
+      </form>
+    </div>
+  );
+}
