@@ -104,6 +104,22 @@ await as(admin, `select admin_set_profile($1,'petugas',false)`, [dodi]);
 ok((await as(dodi, `select count(*)::int n from rooms`)).rows[0].n === 0, 'petugas nonaktif tidak bisa melihat data');
 await fails(as(dodi, `insert into checks(equipment_id,activity_id,check_date,status) values ($1,$2,today_wib(),'done')`, [eq, aDaily]), /row-level security/, 'petugas nonaktif tidak bisa mengisi');
 
+// Simpan ceklis satu hari sekaligus
+await db.exec(`select set_config('request.jwt.sub', '', false)`);
+await as(admin, `select admin_set_profile($1,'petugas',true)`, [dodi]);
+let res = (await as(rina, `select save_day_checks($1, today_wib()-1, $2::jsonb) r`,
+  [eq, JSON.stringify([{ activity_id: aDaily, status: 'done' }, { activity_id: aMonthly, status: 'na' }])])).rows[0].r;
+ok(res.saved === 2 && res.blocked === 0, 'save_day_checks menyimpan 2 kegiatan');
+res = (await as(dodi, `select save_day_checks($1, today_wib()-1, $2::jsonb) r`,
+  [eq, JSON.stringify([{ activity_id: aDaily, status: null }])])).rows[0].r;
+ok(res.blocked === 1, 'mengosongkan isian petugas lain dilaporkan sebagai terblokir');
+res = (await as(rina, `select save_day_checks($1, today_wib()-1, $2::jsonb) r`,
+  [eq, JSON.stringify([{ activity_id: aDaily, status: null }])])).rows[0].r;
+ok(res.blocked === 0 && (await one(`select count(*)::int n from checks where activity_id=$1 and check_date=today_wib()-1`, [aDaily])).n === 0, 'isian sendiri bisa dikosongkan');
+const otherEq = (await as(admin, `insert into equipment(room_id,name) values ($1,'Sentrifus') returning id`, [room])).rows[0].id;
+await fails(as(rina, `select save_day_checks($1, today_wib(), $2::jsonb)`, [otherEq, JSON.stringify([{ activity_id: aDaily, status: 'done' }])]),
+  /tidak sesuai/, 'kegiatan alat lain ditolak');
+
 // Reset bulan & audit
 await fails(as(rina, `select reset_month($1,2026,1)`, [eq]), /Hanya admin/, 'reset hanya admin');
 const audit = (await as(rina, `select table_name, action, user_label from audit_log order by id`)).rows;

@@ -42,4 +42,4 @@ jobs:
       - name: Pasang migration database
         run: supabase db push --remote="$PROJECT_ID" --password "$SUPABASE_DB_PASSWORD" --include-all --yes
       - name: Pasang Edge Functions
-        run: supabase functions deploy --project-ref "$PROJECT_ID" --use-api
+        run: supabase functions deploy --remote="$PROJECT_ID" --use-api --yes

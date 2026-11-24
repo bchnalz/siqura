@@ -17,7 +17,7 @@ Teknologi: React + Vite + Tailwind, Supabase (database, login, Edge Functions), 
 | Tahap | Isi | Status |
 |---|---|---|
 | 1 | Database, keamanan, login, Beranda, daftar alat, link QR, PWA | ✅ |
-| 2 | Ceklis alat + matriks bulanan, catat indikator + grafik, scan QR di aplikasi | ⏳ |
+| 2 | Ceklis alat + matriks bulanan + riwayat, catat indikator + grafik, scan QR di aplikasi, simpan offline | ✅ |
 | 3 | Kelola master & akun (admin), kartu QR, cetak A4, dashboard desktop | ⏳ |
 | 4 | Push notification pengingat | ⏳ |
 
