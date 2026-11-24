@@ -73,20 +73,25 @@ const mobileNav = [
   { to: '/akun', label: 'Akun', icon: UserRound },
 ];
 
-/** Tab menu bawah: ikon saja, tab aktif melebar halus menampilkan labelnya. */
+/** Tab menu bawah: tab tidak aktif = ikon; tab aktif = label saja.
+ *  Ikon menyusut & label melebar bersamaan (kolom grid 0fr ⇄ 1fr). */
+const EASE = 'duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]';
 function TabItem({ to, label, icon: Icon, end }) {
   return (
     <li className="flex">
       <NavLink to={to} end={end} aria-label={label}
         className={({ isActive }) => cn(
-          'flex h-11 min-w-10 items-center justify-center rounded-full px-2 transition-[background-color,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-          isActive ? 'bg-brand-soft text-brand' : 'text-subtle hover:text-ink')}>
+          'flex h-11 min-w-11 items-center justify-center rounded-full transition-[background-color,color,padding]', EASE,
+          isActive ? 'bg-brand-soft px-4 text-brand' : 'px-2.5 text-subtle hover:text-ink')}>
         {({ isActive }) => (
           <>
-            <Icon size={22} strokeWidth={isActive ? 2.4 : 2} aria-hidden="true" className="shrink-0" />
-            <span className={cn('grid transition-[grid-template-columns,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              isActive ? 'ml-1 grid-cols-[1fr] opacity-100' : 'ml-0 grid-cols-[0fr] opacity-0')}>
-              <span aria-hidden="true" className="overflow-hidden text-xs font-bold whitespace-nowrap">{label}</span>
+            <span aria-hidden="true" className={cn('grid transition-[grid-template-columns,opacity,transform]', EASE,
+              isActive ? 'scale-75 grid-cols-[0fr] opacity-0' : 'scale-100 grid-cols-[1fr] opacity-100')}>
+              <span className="overflow-hidden"><Icon size={22} className="block" /></span>
+            </span>
+            <span aria-hidden="true" className={cn('grid transition-[grid-template-columns,opacity]', EASE,
+              isActive ? 'grid-cols-[1fr] opacity-100' : 'grid-cols-[0fr] opacity-0')}>
+              <span className="overflow-hidden text-[13px] font-bold whitespace-nowrap">{label}</span>
             </span>
           </>
         )}
