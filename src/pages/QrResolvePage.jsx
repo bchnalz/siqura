@@ -3,15 +3,25 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Alert, Spinner } from '@/components/ui';
 
+const UUID = /^[0-9a-f-]{36}$/i;
+
 /**
- * Tujuan link QR: /q?eq=<id alat>  atau  /q?room=<nama ruangan>&eq=<nama alat>
- * (format nama sama dengan aplikasi lama, agar mudah dimigrasi).
+ * Tujuan link QR:
+ *   /q?eq=<id alat>                         → ceklis alat
+ *   /q?room=<nama ruangan>&eq=<nama alat>   → ceklis alat (format aplikasi lama)
+ *   /q?ruang=<id ruangan>                   → catat indikator ruangan
  */
 export default function QrResolvePage() {
   const [params] = useSearchParams();
+  const ruang = params.get('ruang')?.trim();
+  if (ruang && UUID.test(ruang)) return <Navigate to={`/indikator?lok=r:${ruang}`} replace />;
+  return <EquipmentQr params={params} />;
+}
+
+function EquipmentQr({ params }) {
   const eq = params.get('eq')?.trim();
   const room = params.get('room')?.trim();
-  const isId = /^[0-9a-f-]{36}$/i.test(eq ?? '');
+  const isId = UUID.test(eq ?? '');
 
   const { data, isPending } = useQuery({
     queryKey: ['qr', room, eq],

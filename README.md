@@ -67,8 +67,11 @@ Nama instansi, unit, dan label tanda tangan laporan ada di `src/config.js`.
 
 ### 6. Link QR
 
-Setiap alat punya link `https://<alamat-aplikasi>/q?eq=<id-alat>`.
-Format lama `?room=<nama ruangan>&eq=<nama alat>` juga dikenali.
+- **QR alat** `https://<alamat-aplikasi>/q?eq=<id-alat>` → ceklis pemeliharaan alat (plus tautan catat indikator bila alat punya indikator, mis. suhu kulkas).
+- **QR ruangan** `https://<alamat-aplikasi>/q?ruang=<id-ruangan>` → catat indikator ruangan (suhu, kelembapan, tekanan) pada shift yang sedang berjalan.
+- Format lama `?room=<nama ruangan>&eq=<nama alat>` juga dikenali.
+
+Cetak keduanya dari menu **Kartu QR** (tab *QR alat* / *QR ruangan*).
 
 ---
 

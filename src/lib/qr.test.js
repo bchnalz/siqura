@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentQrUrl, qrToRoute } from './qr';
+import { equipmentQrUrl, qrToRoute, roomQrUrl } from './qr';
 
 const origin = 'https://siqura.vercel.app';
 describe('QR', () => {
@@ -12,7 +12,9 @@ describe('QR', () => {
     expect(qrToRoute('https://contoh.com/promo', origin)).toBeNull();
     expect(qrToRoute(`${origin}/q`, origin)).toBeNull();
   });
-  it('membuat link stiker', () => {
+  it('membuat link stiker alat & ruangan', () => {
     expect(equipmentQrUrl('e1', origin)).toBe(`${origin}/q?eq=e1`);
+    expect(roomQrUrl('r1', origin)).toBe(`${origin}/q?ruang=r1`);
+    expect(qrToRoute(roomQrUrl('r1', origin), origin)).toBe('/q?ruang=r1');
   });
 });

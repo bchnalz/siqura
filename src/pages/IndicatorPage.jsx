@@ -51,8 +51,9 @@ export default function IndicatorPage() {
   }, [targets.data]);
 
   const ruang = params.get('ruang');
-  const locKey = params.get('lok') || (ruang ? `r:${ruang}` : locations[0]?.key);
-  const loc = locations.find((l) => l.key === locKey) ?? locations[0];
+  const requested = params.get('lok') || (ruang ? `r:${ruang}` : null);
+  // dari QR ruangan: jangan diam-diam pindah ke lokasi lain bila ruangan itu belum punya indikator
+  const loc = requested ? locations.find((l) => l.key === requested) : locations[0];
 
   return (
     <div className="flex flex-col gap-3 p-4">
@@ -62,7 +63,7 @@ export default function IndicatorPage() {
       {targets.data && locations.length === 0 && (
         <Card className="p-4 text-sm text-muted">Belum ada indikator yang dipasang. Admin dapat menambahkannya di Kelola Master.</Card>
       )}
-      {locations.length > 1 && (
+      {(locations.length > 1 || (requested && !loc)) && locations.length > 0 && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4" role="group" aria-label="Lokasi">
           {locations.map((l) => (
             <button key={l.key} type="button" aria-pressed={l.key === loc?.key} onClick={() => setParams({ lok: l.key }, { replace: true })}
@@ -72,6 +73,9 @@ export default function IndicatorPage() {
             </button>
           ))}
         </div>
+      )}
+      {targets.data && requested && !loc && locations.length > 0 && (
+        <Card className="p-4 text-sm text-muted">Lokasi ini belum punya indikator yang dicatat. Pilih lokasi lain di atas, atau minta admin memasang indikatornya.</Card>
       )}
       {loc && <LocationPanel key={loc.key} loc={loc} />}
     </div>

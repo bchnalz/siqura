@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, History, Pencil, RotateCcw, Undo2 } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, History, LineChart, Pencil, RotateCcw, Undo2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeRefresh } from '@/hooks/useRealtime';
 import { useActivityStatus, useAudit, useChecks, useEquipment } from '@/features/equipment/api';
@@ -53,6 +53,7 @@ export default function EquipmentPage() {
         </div>
       </header>
 
+      <EquipmentIndicatorsLink equipmentId={id} />
       {eq.error && <Alert className="m-4">{friendlyError(eq.error)}</Alert>}
       {(eq.isPending || statuses.isPending) && <div className="flex justify-center py-10"><Spinner /></div>}
       {eq.data && statuses.data && (
@@ -63,6 +64,31 @@ export default function EquipmentPage() {
         </>
       )}
     </div>
+  );
+}
+
+/** Alat yang juga punya indikator (mis. suhu kulkas): satu QR alat cukup untuk keduanya. */
+function EquipmentIndicatorsLink({ equipmentId }) {
+  const q = useQuery({
+    queryKey: ['master', 'equipment-indicators', equipmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('indicator_targets')
+        .select('id,indicator:indicators!inner(name,is_active)').eq('equipment_id', equipmentId).eq('is_active', true).eq('indicator.is_active', true);
+      if (error) throw error;
+      return data;
+    },
+  });
+  if (!q.data?.length) return null;
+  return (
+    <Link to={`/indikator?lok=e:${equipmentId}`}
+      className="mx-4 mt-3 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-white px-3.5 py-2.5 lg:mx-0">
+      <LineChart size={18} className="shrink-0 text-brand" aria-hidden="true" />
+      <span className="flex flex-1 flex-col">
+        <span className="text-sm font-bold">Catat indikator alat ini</span>
+        <span className="text-xs text-muted">{q.data.map((t) => t.indicator.name).join(' · ')}</span>
+      </span>
+      <ChevronRight size={18} className="text-subtle" aria-hidden="true" />
+    </Link>
   );
 }
 
