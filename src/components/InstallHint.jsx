@@ -28,7 +28,7 @@ export default function InstallHint({ className }) {
   return (
     <div className={cn('flex items-center gap-3 rounded-2xl bg-brand-soft px-3.5 py-3', className)}>
       <Smartphone className="shrink-0 text-brand" size={22} aria-hidden="true" />
-      <p className="flex-1 text-xs leading-relaxed text-[#2D3B3A]">
+      <p className="flex-1 text-xs leading-relaxed text-ink-soft">
         {prompt
           ? 'Pasang SiQura di layar utama HP agar bisa dibuka seperti aplikasi dan menerima notifikasi.'
           : 'iPhone: ketuk tombol Bagikan di Safari, lalu “Tambahkan ke Layar Utama”.'}

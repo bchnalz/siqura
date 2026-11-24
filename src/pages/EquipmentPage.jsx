@@ -29,7 +29,7 @@ export default function EquipmentPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-10 flex flex-col gap-2 border-b border-line bg-white px-3 pt-3">
+      <header className="sticky top-0 z-10 flex flex-col gap-2 border-b border-line bg-white px-3 pt-3 lg:static lg:rounded-2xl lg:border lg:px-4">
         <div className="flex items-center gap-2">
           <button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} aria-label="Kembali"
             className="flex size-11 items-center justify-center rounded-xl hover:bg-ground">
@@ -130,15 +130,15 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col gap-3 p-4 pb-28">
+      <div className="flex flex-1 flex-col gap-3 p-4 pb-28 lg:px-0 lg:pb-4">
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-0.5 rounded-xl border border-line bg-white px-3 py-2">
-            <span className="text-[11px] text-muted">Tanggal pelaksanaan</span>
+            <span className="text-xs text-muted">Tanggal pelaksanaan</span>
             <input type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)}
               className="bg-transparent text-sm font-bold outline-none" />
           </label>
           <div className="flex flex-col gap-0.5 rounded-xl border border-line bg-white px-3 py-2">
-            <span className="text-[11px] text-muted">Paraf (otomatis)</span>
+            <span className="text-xs text-muted">Paraf (otomatis)</span>
             <span className="truncate text-sm font-bold">{profile?.initials || '—'} · {(profile?.full_name || '').split(' ')[0]}</span>
           </div>
         </div>
@@ -172,7 +172,7 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
                   {checked && date === today ? <Badge tone="ok">Selesai</Badge> : <Badge tone={statusTone[st.key]}>{st.label}</Badge>}
                   {sel[s.activity_id] === 'na' && <Badge>– tidak digunakan</Badge>}
                 </span>
-                <span className="text-[11px] text-subtle">
+                <span className="text-xs text-subtle">
                   {s.last_done ? `Terakhir dikerjakan ${formatShortDate(s.last_done)}` : 'Belum pernah dikerjakan'}
                   {st.key !== 'late' && st.key !== 'today' && ` · jatuh tempo ${formatShortDate(s.next_due)}`}
                 </span>
@@ -184,14 +184,14 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
         {(equipment.sop_note || equipment.room?.sop_note) && (
           <div className="rounded-xl bg-brand-soft px-3.5 py-3">
             <p className="text-xs font-bold text-brand">Catatan SOP</p>
-            <p className="text-xs leading-relaxed whitespace-pre-line text-[#2D3B3A]">{equipment.sop_note || equipment.room.sop_note}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-line text-ink-soft">{equipment.sop_note || equipment.room.sop_note}</p>
           </div>
         )}
       </div>
 
-      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-lg flex-col gap-2 border-t border-line bg-white px-4 pt-3">
-        {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
-        <Button size="lg" onClick={save} disabled={busy || changed.length === 0}>
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-lg flex-col gap-2 border-t border-line bg-white px-4 pt-3 lg:sticky lg:bottom-4 lg:mx-0 lg:max-w-none lg:flex-row lg:items-center lg:justify-end lg:rounded-2xl lg:border lg:p-3 lg:shadow-[0_8px_24px_rgba(19,32,31,0.10)]">
+        {msg && <Alert tone={msg.tone} className="lg:flex-1">{msg.text}</Alert>}
+        <Button size="lg" className="lg:min-w-64" onClick={save} disabled={busy || changed.length === 0}>
           {busy ? 'Menyimpan…' : changed.length ? `Simpan ceklis ${formatShortDate(date)}` : 'Tidak ada perubahan'}
         </Button>
       </div>
@@ -257,7 +257,7 @@ function MatrixTab({ equipment, statuses }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex flex-col gap-3 p-4 lg:px-0">
       <div className="flex flex-wrap items-center gap-2">
         <label className="sr-only" htmlFor="bulan">Bulan</label>
         <input id="bulan" type="month" value={ym} max={today.slice(0, 7)} onChange={(e) => e.target.value && setYm(e.target.value)}
@@ -280,15 +280,15 @@ function MatrixTab({ equipment, statuses }) {
               <tr>
                 <th className="sticky left-0 z-[1] min-w-36 bg-white px-2 py-2 text-left font-bold">Kegiatan</th>
                 {days.map((d) => (
-                  <th key={d} className={cn('w-8 min-w-8 px-0 py-2 text-center font-semibold', d === today ? 'text-brand' : 'text-subtle')}>{Number(d.slice(8))}</th>
+                  <th key={d} className={cn('w-8 min-w-8 px-0 py-2 text-center text-xs font-semibold', d === today ? 'text-brand' : 'text-subtle')}>{Number(d.slice(8))}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {statuses.map((s) => (
                 <tr key={s.activity_id} className="border-t border-line">
-                  <th scope="row" className="sticky left-0 z-[1] max-w-40 bg-white px-2 py-1.5 text-left font-medium leading-tight">
-                    {s.name}<span className="block text-[10px] font-normal text-subtle">{s.interval_days} hari</span>
+                  <th scope="row" className="sticky left-0 z-[1] max-w-40 bg-white px-2 py-1.5 text-left font-medium leading-snug">
+                    {s.name}<span className="block text-xs font-normal text-subtle">{s.interval_days} hari</span>
                   </th>
                   {days.map((d) => {
                     const c = grid.get(`${s.activity_id}|${d}`);
@@ -299,7 +299,7 @@ function MatrixTab({ equipment, statuses }) {
                           aria-label={`${s.name}, ${d}: ${c ? (c.status === 'done' ? 'selesai' : 'tidak digunakan') : 'kosong'}`}
                           title={c ? `${c.initials}${c.is_backdated ? ' · susulan' : ''}` : undefined}
                           className={cn('flex size-7 items-center justify-center rounded-md text-sm font-bold',
-                            c?.status === 'done' ? 'bg-ok-soft text-ok' : c?.status === 'na' ? 'bg-ground text-subtle' : future ? 'bg-transparent' : 'bg-[#F8FAFA]',
+                            c?.status === 'done' ? 'bg-ok-soft text-ok' : c?.status === 'na' ? 'bg-ground text-subtle' : future ? 'bg-transparent' : 'bg-ground/60',
                             edit && !future && 'ring-1 ring-field')}>
                           {c?.status === 'done' ? '✓' : c?.status === 'na' ? '–' : ''}
                         </button>
@@ -311,14 +311,16 @@ function MatrixTab({ equipment, statuses }) {
               <tr className="border-t border-line bg-ground">
                 <th scope="row" className="sticky left-0 z-[1] bg-ground px-2 py-1.5 text-left font-bold">Paraf</th>
                 {initialsByDay.map((t, i) => (
-                  <td key={i} className="px-0.5 py-1.5 text-center text-[9px] font-semibold text-muted [writing-mode:vertical-rl]">{t}</td>
+                  <td key={i} className="px-0 py-1.5 text-center align-top text-[11px] leading-snug font-semibold text-muted">
+                    {t.split('/').filter(Boolean).map((x) => <span key={x} className="block">{x}</span>)}
+                  </td>
                 ))}
               </tr>
             </tbody>
           </table>
         </div>
       )}
-      <p className="text-[11px] text-subtle">✓ selesai · – tidak digunakan/libur · tahan kursor/ketuk lama pada sel untuk melihat paraf.</p>
+      <p className="text-xs text-subtle">✓ selesai · – tidak digunakan/libur · tahan kursor/ketuk lama pada sel untuk melihat paraf.</p>
       {isAdmin && (
         <Button variant="ghost" size="sm" className="self-start text-bad" onClick={resetMonth}>
           <RotateCcw size={15} aria-hidden="true" /> Reset ceklis bulan ini (admin)
@@ -355,14 +357,14 @@ function HistoryTab({ equipmentId, statuses }) {
   if (audit.isPending) return <div className="flex justify-center py-10"><Spinner /></div>;
   if (audit.error) return <Alert className="m-4">{friendlyError(audit.error)}</Alert>;
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-2 p-4 lg:px-0">
       {audit.data.length === 0 && <Card className="p-4 text-sm text-muted">Belum ada riwayat.</Card>}
       {audit.data.map((r) => (
         <div key={r.id} className="flex gap-3 rounded-2xl border border-line bg-white px-3.5 py-2.5">
           <History size={16} className="mt-0.5 shrink-0 text-subtle" aria-hidden="true" />
           <div className="flex flex-col gap-0.5">
             <span className="text-[13px] font-semibold">{describe(r, names)}</span>
-            <span className="text-[11px] text-subtle">
+            <span className="text-xs text-subtle">
               {r.user_label ?? 'Sistem'} · {new Date(r.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>

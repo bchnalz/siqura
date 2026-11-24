@@ -25,7 +25,7 @@ export default function SyncBanner() {
 
   if (!count && online && !rejected) return null;
   return (
-    <div role="status" className="sticky top-0 z-30 flex items-center gap-2 bg-[#FFF7E6] px-4 py-2 text-[13px] font-semibold text-warn">
+    <div role="status" className="sticky top-0 z-30 flex items-center gap-2 bg-warn-soft px-4 py-2 text-[13px] font-semibold text-warn">
       {online ? <RefreshCw size={16} aria-hidden="true" /> : <CloudOff size={16} aria-hidden="true" />}
       <span className="flex-1">
         {rejected

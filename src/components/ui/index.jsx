@@ -5,7 +5,7 @@ const btn = {
   primary: 'bg-brand text-white hover:bg-brand-strong',
   outline: 'border border-field bg-white text-brand hover:bg-brand-soft',
   ghost: 'text-ink hover:bg-brand-soft',
-  danger: 'bg-bad text-white hover:bg-[#912018]',
+  danger: 'bg-bad text-white hover:bg-bad-strong',
 };
 
 export const Button = forwardRef(function Button({ variant = 'primary', size = 'md', className, ...p }, ref) {
@@ -55,7 +55,7 @@ const tones = {
 };
 
 export function Badge({ tone = 'muted', className, ...p }) {
-  return <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', tones[tone], className)} {...p} />;
+  return <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold whitespace-nowrap', tones[tone], className)} {...p} />;
 }
 
 export function Spinner({ className }) {

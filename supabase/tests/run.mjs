@@ -120,6 +120,10 @@ const otherEq = (await as(admin, `insert into equipment(room_id,name) values ($1
 await fails(as(rina, `select save_day_checks($1, today_wib(), $2::jsonb)`, [otherEq, JSON.stringify([{ activity_id: aDaily, status: 'done' }])]),
   /tidak sesuai/, 'kegiatan alat lain ditolak');
 
+// Kepatuhan harian
+const comp = (await as(rina, `select * from daily_compliance(today_wib()-2, today_wib()) order by day`)).rows;
+ok(comp.length === 1 && comp[0].daily_total === 1, 'kegiatan harian baru dihitung mulai tanggal dibuat');
+
 // Reset bulan & audit
 await fails(as(rina, `select reset_month($1,2026,1)`, [eq]), /Hanya admin/, 'reset hanya admin');
 const audit = (await as(rina, `select table_name, action, user_label from audit_log order by id`)).rows;

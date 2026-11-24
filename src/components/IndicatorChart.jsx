@@ -60,7 +60,7 @@ export default function IndicatorChart({ readings, from, to, indicator, width = 
       </svg>
       <figcaption className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
         {lo != null && hi != null && (
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-4 border border-[#7DB5B0] bg-brand-soft" />Normal {fmt(lo)}–{fmt(hi)} {unit}</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-4 border border-heat-part bg-brand-soft" />Normal {fmt(lo)}–{fmt(hi)} {unit}</span>
         )}
         <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 bg-brand" />Pagi · sore · malam</span>
         <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-bad" />Di luar batas ({outCount})</span>

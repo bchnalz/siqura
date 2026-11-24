@@ -2,7 +2,8 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Spinner } from '@/components/ui';
-import MobileShell from '@/components/layout/MobileShell';
+import AppShell from '@/components/layout/AppShell';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
 import SyncBanner from '@/components/SyncBanner';
 import LoginPage from '@/pages/LoginPage';
 import HomePage from '@/pages/HomePage';
@@ -13,6 +14,8 @@ import QrResolvePage from '@/pages/QrResolvePage';
 import AccountPage from '@/pages/AccountPage';
 
 const ScanPage = lazy(() => import('@/pages/ScanPage'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const MasterPage = lazy(() => import('@/pages/master/MasterPage'));
 const Loading = () => <div className="flex min-h-[50dvh] items-center justify-center"><Spinner /></div>;
 
 function RequireAuth({ children }) {
@@ -26,6 +29,10 @@ function RequireAuth({ children }) {
   return children;
 }
 
+function Home() {
+  return useIsDesktop() ? <DashboardPage /> : <HomePage />;
+}
+
 export default function App() {
   return (
     <>
@@ -34,9 +41,10 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/q" element={<RequireAuth><QrResolvePage /></RequireAuth>} />
-          <Route path="/alat/:id" element={<RequireAuth><div className="mx-auto max-w-lg"><EquipmentPage /></div></RequireAuth>} />
-          <Route element={<RequireAuth><MobileShell /></RequireAuth>}>
-            <Route index element={<HomePage />} />
+          <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+            <Route index element={<Home />} />
+            <Route path="alat/:id" element={<EquipmentPage />} />
+            <Route path="master" element={<MasterPage />} />
             <Route path="alat" element={<EquipmentListPage />} />
             <Route path="scan" element={<ScanPage />} />
             <Route path="indikator" element={<IndicatorPage />} />

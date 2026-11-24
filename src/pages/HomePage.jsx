@@ -27,15 +27,15 @@ export default function HomePage() {
           <Logo size={36} />
           <div className="flex flex-1 flex-col">
             <span className="text-lg font-extrabold">SiQura</span>
-            <span className="text-[11px] text-[#CFE6E4]">Lab Mikrobiologi Klinik &amp; Biomolekuler</span>
+            <span className="text-xs text-on-brand-muted">Lab Mikrobiologi Klinik &amp; Biomolekuler</span>
           </div>
           <Link to="/akun" aria-label="Notifikasi" className="relative flex size-11 items-center justify-center rounded-xl bg-brand-tint">
             <Bell size={20} aria-hidden="true" />
-            {data?.lateCount > 0 && <span className="absolute top-2 right-2.5 size-2 rounded-full bg-amber-400" />}
+            {data?.lateCount > 0 && <span className="absolute top-2 right-2.5 size-2 rounded-full bg-heat-none" />}
           </Link>
         </div>
         <div>
-          <p className="text-[13px] text-[#CFE6E4]">{formatLongDate(today)} · Shift {SHIFT_LABEL[shift]}</p>
+          <p className="text-[13px] text-on-brand-muted">{formatLongDate(today)} · Shift {SHIFT_LABEL[shift]}</p>
           <h1 className="text-[22px] font-bold">{greeting(shift)}{firstName ? `, ${firstName}` : ''}</h1>
         </div>
       </header>
@@ -43,7 +43,7 @@ export default function HomePage() {
       <Card className="mx-4 -mt-12 grid grid-cols-3 gap-2 border-0 p-4 shadow-[0_6px_20px_rgba(14,90,95,0.12)]">
         <Stat value={data?.tasksToday} label="Tugas hari ini" className="text-brand" />
         <Stat value={data?.lateCount} label="Terlambat" className="text-bad" divided />
-        <Stat value={data?.pendingIndicators} label="Indikator belum dicatat" className="text-[#B45309]" />
+        <Stat value={data?.pendingIndicators} label="Indikator belum dicatat" className="text-warn-strong" />
       </Card>
 
       <div className="flex flex-col gap-4 p-4">
@@ -54,7 +54,7 @@ export default function HomePage() {
             className="flex items-center gap-3 rounded-2xl border border-bad-line bg-bad-soft px-3.5 py-3">
             <Clock className="shrink-0 text-bad" size={22} aria-hidden="true" />
             <span className="flex flex-1 flex-col">
-              <span className="text-[13px] font-bold text-[#912018]">
+              <span className="text-[13px] font-bold text-bad-strong">
                 {data.lateItems[0].name} — terlambat {data.lateItems[0].days} hari
               </span>
               <span className="text-xs text-muted">
@@ -62,7 +62,7 @@ export default function HomePage() {
                 {data.lateItems.length > 1 && ` · +${data.lateItems.length - 1} lainnya`}
               </span>
             </span>
-            <ChevronRight size={18} className="text-[#912018]" aria-hidden="true" />
+            <ChevronRight size={18} className="text-bad-strong" aria-hidden="true" />
           </Link>
         )}
 
@@ -90,7 +90,7 @@ export default function HomePage() {
                   {c.items.slice(0, 3).map(({ target, indicator, reading }) => (
                     <span key={target.id} className={cn('flex flex-col rounded-xl px-2 py-1.5',
                       !reading ? 'bg-ground' : reading.is_out_of_range ? 'bg-bad-soft' : 'bg-ok-soft')}>
-                      <span className="truncate text-[10px] text-muted">{indicator.name}</span>
+                      <span className="truncate text-xs text-muted">{indicator.name}</span>
                       <span className={cn('text-[15px] font-bold', !reading ? 'text-subtle' : reading.is_out_of_range ? 'text-bad' : 'text-ok')}>
                         {reading ? `${formatValue(reading.value, indicator.decimals)} ${indicator.unit}` : '—'}
                       </span>
@@ -137,7 +137,7 @@ function Stat({ value, label, className, divided }) {
   return (
     <div className={cn('flex flex-col items-center gap-0.5', divided && 'border-x border-line')}>
       <span className={cn('text-2xl font-extrabold', className)}>{value ?? '–'}</span>
-      <span className="text-center text-[11px] text-muted">{label}</span>
+      <span className="text-center text-xs text-muted">{label}</span>
     </div>
   );
 }

@@ -7,9 +7,12 @@
   --color-brand-strong: #083E42;
   --color-brand-soft: #EAF2F1;
   --color-brand-tint: #14706F;
+  --color-on-brand: #FFFFFF;
+  --color-on-brand-muted: #D6ECEA;
 
   --color-ground: #F3F6F5;
   --color-ink: #13201F;
+  --color-ink-soft: #2D3B3A;
   --color-muted: #4A5A59;
   --color-subtle: #5B6B6A;
   --color-line: #E3EAE9;
@@ -19,9 +22,16 @@
   --color-ok-soft: #ECF6EF;
   --color-warn: #93400A;
   --color-warn-soft: #FFF7E6;
+  --color-warn-strong: #B45309;
   --color-bad: #B42318;
   --color-bad-soft: #FEF3F2;
   --color-bad-line: #FECDCA;
+  --color-bad-strong: #912018;
+
+  /* skala kepatuhan (peta panas) */
+  --color-heat-full: #0E5A5F;
+  --color-heat-part: #7DB5B0;
+  --color-heat-none: #F7B27A;
 }
 
 html, body, #root { min-height: 100%; }
@@ -34,3 +44,16 @@ body {
 }
 
 .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+
+/* Permukaan bawaan browser ikut palet SiQura */
+::selection { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+input, textarea { caret-color: var(--color-brand); }
+::placeholder { color: var(--color-subtle); opacity: 1; }
+html { scrollbar-color: #B8C9C7 transparent; }
+:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; border-radius: 6px; }
+aside :focus-visible, .on-brand :focus-visible { outline-color: var(--color-on-brand); }
+table, .tnum { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; }
+}

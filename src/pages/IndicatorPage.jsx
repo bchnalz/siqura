@@ -100,7 +100,7 @@ function LocationPanel({ loc }) {
       <Card className="flex flex-col gap-3 p-3">
         <div className="flex items-center gap-2">
           <label className="flex flex-1 flex-col gap-0.5 rounded-xl bg-ground px-3 py-1.5">
-            <span className="text-[11px] text-muted">Tanggal</span>
+            <span className="text-xs text-muted">Tanggal</span>
             <input type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)} className="bg-transparent text-sm font-bold outline-none" />
           </label>
         </div>
@@ -171,7 +171,7 @@ function ReadingForm({ targets, readings, date, shift }) {
           <Card key={t.id} className={cn('flex flex-col gap-2 px-3.5 py-3', out && 'border-bad-line')}>
             <div className="flex items-baseline justify-between gap-2">
               <label htmlFor={`v-${t.id}`} className="text-sm font-bold">{ind.name}</label>
-              <span className="text-[11px] text-muted">Normal {rangeText(ind)}</span>
+              <span className="text-xs text-muted">Normal {rangeText(ind)}</span>
             </div>
             <div className="flex items-center gap-2">
               <input id={`v-${t.id}`} inputMode="decimal" autoComplete="off" value={vals[t.id].text}
@@ -191,7 +191,7 @@ function ReadingForm({ targets, readings, date, shift }) {
                   placeholder="Mis. AC dicek, dehumidifier dinyalakan, dicek ulang 1 jam kemudian" />
               </label>
             )}
-            {r && <span className="text-[11px] text-subtle">Tercatat oleh {r.initials}{r.is_backdated ? ' · susulan' : ''}</span>}
+            {r && <span className="text-xs text-subtle">Tercatat oleh {r.initials}{r.is_backdated ? ' · susulan' : ''}</span>}
           </Card>
         );
       })}
@@ -247,7 +247,7 @@ function ChartPanel({ loc }) {
         <div className="flex flex-col gap-2 border-t border-line pt-2">
           <span className="text-xs font-bold text-bad">Di luar batas & tindakan korektif</span>
           {outs.slice(0, 5).map((r) => (
-            <p key={r.reading_date + r.shift} className="text-xs text-[#2D3B3A]">
+            <p key={r.reading_date + r.shift} className="text-xs text-ink-soft">
               <b>{formatShortDate(r.reading_date)} {SHIFT_LABEL[r.shift].toLowerCase()} · {Number(r.value).toLocaleString('id-ID')} {target.indicator.unit}</b> — {r.corrective_action}
             </p>
           ))}
