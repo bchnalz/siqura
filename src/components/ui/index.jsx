@@ -51,6 +51,8 @@ const tones = {
   ok: 'bg-ok-soft text-ok',
   warn: 'bg-warn-soft text-warn',
   bad: 'bg-bad-soft text-bad',
+  alert: 'bg-bad text-white',
+  missed: 'bg-white text-bad-strong ring-1 ring-inset ring-bad-line',
   muted: 'bg-ground text-muted',
 };
 

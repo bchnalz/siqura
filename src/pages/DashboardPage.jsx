@@ -1,13 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeRefresh } from '@/hooks/useRealtime';
-import { addDays, currentShift, dueStatus, formatLongDate, formatShortDate, SHIFT_LABEL, SHIFTS, todayWib } from '@/lib/dates';
+import { addDays, currentShift, dueStatus, formatLongDate, formatShortDate, SHIFT_LABEL, todayWib } from '@/lib/dates';
+import { useHomeData } from '@/features/home/useHomeData';
+import RoomCard, { SlotLegend } from '@/components/RoomCard';
 import { rows } from '@/lib/api';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Card, Spinner } from '@/components/ui';
-import IndicatorChart from '@/components/IndicatorChart';
+import { Alert, Card, Spinner } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 /** Dashboard desktop: ringkasan kepatuhan, indikator, keterlambatan. */
@@ -16,12 +17,13 @@ export default function DashboardPage() {
   const today = todayWib();
   const monthStart = `${today.slice(0, 7)}-01`;
   const { shift, date: shiftDate } = currentShift();
+  const home = useHomeData({ today, shift, shiftDate });
   useRealtimeRefresh();
 
   const q = useQuery({
-    queryKey: ['live', 'dashboard', today, shiftDate],
+    queryKey: ['live', 'dashboard', today],
     queryFn: async () => {
-      const [rooms, equipment, statuses, comp, targets, todayReadings, outs, staff] = await Promise.all([
+      const [rooms, equipment, statuses, comp, targets, outs, staff] = await Promise.all([
         rows(supabase.from('rooms').select('id,name,sort_order').eq('is_active', true).order('sort_order').order('name')),
         rows(supabase.from('equipment').select('id,room_id,name').eq('is_active', true)),
         rows(supabase.from('activity_status').select('*')),
@@ -29,18 +31,17 @@ export default function DashboardPage() {
         rows(supabase.from('indicator_targets')
           .select('id,room_id,equipment_id,indicator:indicators!inner(id,name,unit,min_value,max_value,decimals,shifts,is_active),room:rooms(name),equipment:equipment(name,room:rooms(name))')
           .eq('is_active', true).eq('indicator.is_active', true)),
-        rows(supabase.from('indicator_readings').select('target_id,shift').eq('reading_date', shiftDate)),
         rows(supabase.from('indicator_readings').select('id,target_id,reading_date,shift,value,corrective_action,initials')
           .eq('is_out_of_range', true).gte('reading_date', addDays(today, -6)).order('reading_date', { ascending: false }).limit(20)),
         rows(supabase.from('profiles').select('id').eq('is_active', true)),
       ]);
-      return { rooms, equipment, statuses, comp, targets, todayReadings, outs, staff };
+      return { rooms, equipment, statuses, comp, targets, outs, staff };
     },
   });
 
   const view = useMemo(() => {
     if (!q.data) return null;
-    const { rooms, equipment, statuses, comp, targets, todayReadings, outs, staff } = q.data;
+    const { rooms, equipment, statuses, comp, targets, outs, staff } = q.data;
     const eqName = new Map(equipment.map((e) => [e.id, e.name]));
     const roomName = new Map(rooms.map((r) => [r.id, r.name]));
     const late = statuses.map((s) => ({ ...s, st: dueStatus(s, today) })).filter((s) => s.st.key === 'late').sort((a, b) => b.st.days - a.st.days);
@@ -53,29 +54,12 @@ export default function DashboardPage() {
     })).filter((h) => h.cells.some(Boolean));
     const targetLabel = (t) => t ? `${t.indicator.name} · ${t.room?.name ?? `${t.equipment?.name}`}` : '';
     const byTarget = new Map(targets.map((t) => [t.id, t]));
-    const roomTargets = new Map();
-    for (const t of targets) {
-      const key = t.room_id ? t.room?.name : `${t.equipment?.name} (${t.equipment?.room?.name ?? ''})`;
-      if (!roomTargets.has(key)) roomTargets.set(key, []);
-      roomTargets.get(key).push(t);
-    }
-    const indicatorToday = [...roomTargets.entries()].map(([name, ts]) => ({
-      name,
-      cells: SHIFTS.map((s) => {
-        const sched = ts.filter((t) => t.indicator.shifts.includes(s));
-        if (!sched.length) return { key: 'none' };
-        const done = sched.filter((t) => todayReadings.some((r) => r.target_id === t.id && r.shift === s)).length;
-        const isPast = SHIFTS.indexOf(s) < SHIFTS.indexOf(shift);
-        const isNow = s === shift;
-        return { key: done === sched.length ? 'done' : isPast ? 'missed' : isNow ? 'pending' : 'later', done, total: sched.length };
-      }),
-    }));
     return {
-      late, eqName, roomName, heat, days, indicatorToday, byTarget, targetLabel,
+      late, eqName, roomName, heat, days, byTarget, targetLabel,
       compliance: total ? Math.round((filled / total) * 100) : null, total, filled,
-      outs, staffCount: staff.length, equipmentCount: equipment.length, roomCount: rooms.length, targets,
+      outs, staffCount: staff.length, equipmentCount: equipment.length, roomCount: rooms.length,
     };
-  }, [q.data, today, monthStart, shift]);
+  }, [q.data, today, monthStart]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -97,20 +81,15 @@ export default function DashboardPage() {
             <Kpi label="Alat terdaftar" value={view.equipmentCount} note={`di ${view.roomCount} ruangan · ${view.staffCount} petugas aktif`} />
           </Card>
 
-          <section className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-            <DashboardChart targets={view.targets} label={view.targetLabel} today={today} />
-            <Card className="flex flex-col gap-3 p-5">
-              <h2 className="text-base font-bold">Indikator hari ini</h2>
-              {view.indicatorToday.length === 0 ? <p className="text-sm text-muted">Belum ada indikator.</p> : (
-                <div className="grid grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] items-center gap-x-1.5 gap-y-2 text-xs">
-                  <span className="font-semibold text-subtle">Lokasi</span>
-                  {SHIFTS.map((s) => <span key={s} className="text-center font-semibold text-subtle">{SHIFT_LABEL[s]}</span>)}
-                  {view.indicatorToday.map((r) => (
-                    <IndicatorRow key={r.name} row={r} />
-                  ))}
-                </div>
-              )}
-            </Card>
+          <section className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <h2 className="text-base font-bold">Ruangan · klik untuk grafik pemantauan &amp; log</h2>
+              <SlotLegend />
+            </div>
+            {home.error && <Alert>{friendlyError(home.error)}</Alert>}
+            {home.data && (home.data.roomCards.length === 0
+              ? <Card className="p-5 text-sm text-muted">Belum ada ruangan. Tambahkan di Kelola Master.</Card>
+              : <div className="grid gap-3 xl:grid-cols-2">{home.data.roomCards.map((c) => <RoomCard key={c.room.id} card={c} shift={shift} detailed />)}</div>)}
           </section>
 
           <Card className="flex flex-col gap-3 p-5">
@@ -193,46 +172,3 @@ function Kpi({ label, value, note, className }) {
 }
 
 const Legend = ({ c, t }) => <span className="flex items-center gap-1.5"><span className={cn('size-3 rounded-sm', c)} />{t}</span>;
-
-const cellStyle = {
-  done: { tone: 'ok', t: '✓' }, missed: { tone: 'bad', t: 'terlewat' }, pending: { tone: 'warn', t: 'belum' },
-  later: { tone: 'muted', t: '—' }, none: { tone: 'muted', t: '·' },
-};
-function IndicatorRow({ row }) {
-  return (
-    <>
-      <span className="leading-snug font-semibold">{row.name}</span>
-      {row.cells.map((c, i) => (
-        <span key={i} className="justify-self-center"><Badge tone={cellStyle[c.key].tone}>{cellStyle[c.key].t}</Badge></span>
-      ))}
-    </>
-  );
-}
-
-function DashboardChart({ targets, label, today }) {
-  const [id, setId] = useState(targets[0]?.id);
-  const t = targets.find((x) => x.id === id) ?? targets[0];
-  const from = addDays(today, -29);
-  const q = useQuery({
-    queryKey: ['live', 'chart', t?.id, from, today],
-    enabled: Boolean(t),
-    queryFn: () => rows(supabase.from('indicator_readings').select('reading_date,shift,value,is_out_of_range')
-      .eq('target_id', t.id).gte('reading_date', from).lte('reading_date', today)),
-  });
-  return (
-    <Card className="flex flex-col gap-3 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-bold">Grafik 30 hari</h2>
-        {targets.length > 0 && (
-          <select aria-label="Pilih indikator" value={t?.id} onChange={(e) => setId(e.target.value)}
-            className="h-10 max-w-full rounded-xl border border-field bg-white px-3 text-[13px] font-semibold">
-            {targets.map((x) => <option key={x.id} value={x.id}>{label(x)}</option>)}
-          </select>
-        )}
-      </div>
-      {!t ? <p className="text-sm text-muted">Belum ada indikator.</p>
-        : q.isPending ? <div className="flex justify-center py-10"><Spinner /></div>
-        : <IndicatorChart readings={q.data ?? []} from={from} to={today} indicator={t.indicator} width={720} height={240} />}
-    </Card>
-  );
-}

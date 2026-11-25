@@ -19,7 +19,7 @@ Teknologi: React + Vite + Tailwind, Supabase (database, login, Edge Functions), 
 | 1 | Database, keamanan, login, Beranda, daftar alat, link QR, PWA | ✅ |
 | 2 | Ceklis alat + matriks bulanan + riwayat, catat indikator + grafik, scan QR di aplikasi, simpan offline | ✅ |
 | 3 | Kelola master & akun (admin), kartu QR, laporan A4 & CSV, dashboard desktop, tampilan desktop otomatis | ✅ |
-| 4 | Push notification pengingat (08.00 & 15.00 WIB) | ✅ |
+| 4 | Push notification pengingat (08.00 & 20.00 WIB) | ✅ |
 
 ---
 
@@ -110,5 +110,5 @@ supabase/
 - Isi susulan (tanggal mundur) boleh dan ditandai `is_backdated`; tanggal masa depan ditolak.
 - Nilai indikator di luar batas wajib disertai tindakan korektif.
 - Petugas hanya bisa menghapus isiannya sendiri; admin bisa semua. Riwayat tidak bisa diubah siapa pun.
-- Shift: Pagi 07.00–13.59, Siang 14.00–20.59, Malam 21.00–06.59 (WIB).
-- Pengingat push otomatis pukul 08.00 dan 15.00 WIB untuk akun petugas yang mengaktifkan notifikasi.
+- Shift: Pagi 07.00–13.59, Sore 14.00–20.59, Malam 21.00–06.59 (WIB).
+- Pengingat push otomatis pukul 08.00 (pagi) dan 20.00 (sore) WIB untuk akun petugas yang mengaktifkan notifikasi.

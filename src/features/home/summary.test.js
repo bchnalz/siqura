@@ -29,6 +29,17 @@ describe('ringkasan beranda', () => {
     expect(s.roomProgress).toHaveLength(1);
     expect(s.roomProgress[0]).toMatchObject({ done: 1, total: 3, late: 1 });
   });
+  it('kartu ruangan memakai status seragam', () => {
+    const c = s.roomCards.find((x) => x.room.id === 'r1');
+    const hum = c.items.find((i) => i.indicator.name === 'Kelembapan');
+    expect(hum.slots.pagi.status).toBe('recorded');
+    expect(hum.slots.sore.status).toBe('pending');
+    expect(hum.slots.malam.status).toBe('upcoming');
+    expect(c.items.find((i) => i.indicator.name === 'Suhu').slots.pagi.status).toBe('missed');
+    expect(c.state.label).toBe('1 belum dicatat');
+    expect(s.roomCards[0].checklist).toMatchObject({ done: 1, total: 3 });
+    expect(s.roomCards.map((x) => x.room.id)).toEqual(['r1']);
+  });
   it('indikator hanya yang dijadwalkan di shift ini', () => {
     expect(s.pendingIndicators).toBe(1);
     expect(s.indicatorCards[0].items.map((i) => i.indicator.name)).toEqual(['Kelembapan']);

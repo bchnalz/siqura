@@ -5,12 +5,9 @@ import { useHomeData } from '@/features/home/useHomeData';
 import { useRealtimeRefresh } from '@/hooks/useRealtime';
 import { currentShift, formatLongDate, greeting, SHIFT_LABEL, todayWib } from '@/lib/dates';
 import { friendlyError } from '@/lib/supabase';
-import { Alert, Badge, Card, Logo, Spinner } from '@/components/ui';
+import { Alert, Card, Logo, Spinner } from '@/components/ui';
+import RoomCard from '@/components/RoomCard';
 import { cn } from '@/lib/cn';
-
-function formatValue(v, decimals = 1) {
-  return Number(v).toLocaleString('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-}
 
 export default function HomePage() {
   const { profile } = useAuth();
@@ -72,60 +69,18 @@ export default function HomePage() {
 
         {isPending && <div className="flex justify-center py-8"><Spinner /></div>}
 
-        {data && data.indicatorCards.length > 0 && (
-          <section className="flex flex-col gap-2.5">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-base font-bold">Indikator ruangan · {SHIFT_LABEL[shift]}</h2>
-              <Link to="/indikator" className="text-[13px] font-semibold text-brand">Catat</Link>
-            </div>
-            {data.indicatorCards.map((c) => (
-              <Link key={c.room.id} to={`/indikator?ruang=${c.room.id}`} className="flex flex-col gap-2 rounded-2xl border border-line bg-white px-3.5 py-3">
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold">{c.room.name}</span>
-                  {c.complete
-                    ? <Badge tone={c.anyOut ? 'bad' : 'ok'}>{c.anyOut ? 'Ada di luar batas' : 'Sudah dicatat'}</Badge>
-                    : <Badge tone="warn">Belum {SHIFT_LABEL[shift].toLowerCase()}</Badge>}
-                </span>
-                <span className="grid grid-cols-3 gap-1.5">
-                  {c.items.slice(0, 3).map(({ target, indicator, reading }) => (
-                    <span key={target.id} className={cn('flex flex-col rounded-xl px-2 py-1.5',
-                      !reading ? 'bg-ground' : reading.is_out_of_range ? 'bg-bad-soft' : 'bg-ok-soft')}>
-                      <span className="truncate text-xs text-muted">{indicator.name}</span>
-                      <span className={cn('text-[15px] font-bold', !reading ? 'text-subtle' : reading.is_out_of_range ? 'text-bad' : 'text-ok')}>
-                        {reading ? `${formatValue(reading.value, indicator.decimals)} ${indicator.unit}` : '—'}
-                      </span>
-                    </span>
-                  ))}
-                </span>
-              </Link>
-            ))}
-          </section>
-        )}
-
         {data && (
           <section className="flex flex-col gap-2.5">
-            <h2 className="text-base font-bold">Ceklis alat per ruangan</h2>
-            {data.roomProgress.length === 0 && (
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-base font-bold">Ruangan · shift {SHIFT_LABEL[shift].toLowerCase()}</h2>
+              <Link to="/indikator" className="text-[13px] font-semibold text-brand">Catat indikator</Link>
+            </div>
+            {data.roomCards.length === 0 && (
               <Card className="p-4 text-sm text-muted">
-                Belum ada ruangan & alat. Admin dapat menambahkannya di menu Kelola Master.
+                Belum ada ruangan, alat, atau indikator. Admin dapat menambahkannya di menu Kelola Master.
               </Card>
             )}
-            {data.roomProgress.map((p) => (
-              <Link key={p.room.id} to={`/alat?ruang=${p.room.id}`} className="flex flex-col gap-2 rounded-2xl border border-line bg-white px-3.5 py-3">
-                <span className="flex items-center justify-between gap-2">
-                  <span className="flex flex-col">
-                    <span className="text-sm font-bold">{p.room.name}</span>
-                    <span className="text-xs text-muted">{p.equipmentCount} alat{p.late ? ` · ${p.late} terlambat` : ''}</span>
-                  </span>
-                  <span className={cn('text-[13px] font-bold', p.late ? 'text-bad' : p.pct === 100 ? 'text-ok' : 'text-brand')}>
-                    {p.done}/{p.total}
-                  </span>
-                </span>
-                <span className="block h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={p.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`Progres ${p.room.name}`}>
-                  <span className={cn('block h-1.5 rounded-full', p.late ? 'bg-bad' : p.pct === 100 ? 'bg-ok' : 'bg-brand')} style={{ width: `${p.pct}%` }} />
-                </span>
-              </Link>
-            ))}
+            {data.roomCards.map((c) => <RoomCard key={c.room.id} card={c} shift={shift} />)}
           </section>
         )}
       </div>

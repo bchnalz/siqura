@@ -35,7 +35,7 @@ export default function NotificationSettings() {
         <div className="flex flex-col gap-0.5">
           <h2 className="text-[15px] font-bold">Notifikasi pengingat</h2>
           <p className="text-[13px] leading-relaxed text-muted">
-            Pukul 08.00 dan 15.00: kegiatan alat yang jatuh tempo dan indikator yang belum dicatat.
+            Pukul 08.00 (shift pagi) dan 20.00 (shift sore): kegiatan alat yang jatuh tempo dan indikator yang belum dicatat.
             {isAdmin && ' Pengingat terjadwal dikirim ke akun petugas; admin bisa memakai kirim tes.'}
           </p>
         </div>

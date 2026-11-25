@@ -28,7 +28,7 @@ export function useIndicatorsAdmin() {
   return useQuery({
     queryKey: ['master', 'indicators-admin'],
     queryFn: () => rows(supabase.from('indicators')
-      .select('id,name,unit,min_value,max_value,decimals,shifts,is_active,targets:indicator_targets(id,room_id,equipment_id,is_active)')
+      .select('id,name,unit,min_value,max_value,decimals,shifts,notes,is_active,targets:indicator_targets(id,room_id,equipment_id,is_active)')
       .order('name')),
   });
 }

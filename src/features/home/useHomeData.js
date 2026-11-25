@@ -20,9 +20,9 @@ export function useHomeData({ today, shift, shiftDate }) {
         rows(supabase.from('indicator_targets')
           .select('id,room_id,equipment_id,indicator:indicators!inner(id,name,unit,min_value,max_value,decimals,shifts,is_active)')
           .eq('is_active', true).eq('indicator.is_active', true)),
-        rows(supabase.from('indicator_readings').select('target_id,shift,value,is_out_of_range').eq('reading_date', shiftDate)),
+        rows(supabase.from('indicator_readings').select('target_id,shift,value,is_out_of_range,initials').eq('reading_date', shiftDate)),
       ]);
-      return buildHomeSummary({ rooms, equipment, statuses, targets, readings, today, shift });
+      return buildHomeSummary({ rooms, equipment, statuses, targets, readings, today, shift, shiftDate });
     },
   });
 }

@@ -150,8 +150,9 @@ ok(sum.pending === 1 && sum.pending_locations[0] === 'Laboratorium TBC' && sum.d
 await asService(`select configure_reminders('https://x.supabase.co/functions/v1/push', 'rahasia')`);
 await asService(`select configure_reminders('https://x.supabase.co/functions/v1/push', 'rahasia')`);
 const jobs = (await db.query(`select jobname, schedule, command from cron.job order by jobname`)).rows;
-ok(jobs.length === 2 && jobs[0].schedule === '0 1 * * *' && jobs[1].schedule === '0 8 * * *' && jobs[1].command.includes("'sore'") && jobs[0].command.includes('x-siqura-cron'),
-  'jadwal 08.00 & 15.00 WIB terpasang sekali (idempoten)');
+const pagiJob = jobs.find((j) => j.jobname === 'siqura-pagi'), soreJob = jobs.find((j) => j.jobname === 'siqura-sore');
+ok(jobs.length === 2 && pagiJob.schedule === '0 1 * * *' && soreJob.schedule === '0 13 * * *' && soreJob.command.includes("'sore'") && pagiJob.command.includes('x-siqura-cron'),
+  'jadwal 08.00 & 20.00 WIB terpasang sekali (idempoten)');
 
 // Hapus kegiatan: hanya admin; isian ikut terhapus tetapi tercatat di riwayat
 const before = (await one(`select count(*)::int n from checks where activity_id=$1`, [aMonthly])).n;

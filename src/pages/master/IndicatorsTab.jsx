@@ -63,6 +63,7 @@ function IndicatorForm({ indicator, rooms, onDone }) {
   const [f, setF] = useState({
     name: indicator?.name ?? '', unit: indicator?.unit ?? '°C', min: fmt(indicator?.min_value), max: fmt(indicator?.max_value),
     decimals: indicator?.decimals ?? 1, shifts: indicator?.shifts ?? ['pagi', 'sore', 'malam'], is_active: indicator?.is_active ?? true,
+    notes: indicator?.notes ?? '',
   });
   const [sel, setSel] = useState(active);
   const [customUnit, setCustomUnit] = useState(Boolean(indicator?.unit) && !isKnownUnit(indicator.unit));
@@ -75,7 +76,7 @@ function IndicatorForm({ indicator, rooms, onDone }) {
     if ((f.min.trim() && min === null) || (f.max.trim() && max === null)) return setError('Batas min/maks harus angka, mis. 2 atau -15 atau 2,5.');
     if (min !== null && max !== null && min > max) return setError('Batas min tidak boleh lebih besar dari batas maks.');
     if (!f.shifts.length) return setError('Pilih minimal satu waktu pencatatan.');
-    const data = { name: f.name.trim(), unit: f.unit.trim(), min_value: min, max_value: max, decimals: Number(f.decimals), shifts: SHIFTS.filter((s) => f.shifts.includes(s)), is_active: f.is_active };
+    const data = { name: f.name.trim(), unit: f.unit.trim(), min_value: min, max_value: max, decimals: Number(f.decimals), shifts: SHIFTS.filter((s) => f.shifts.includes(s)), is_active: f.is_active, notes: f.notes.trim() || null };
     const ok = await run(async () => {
       const saved = indicator
         ? (await must(supabase.from('indicators').update(data).eq('id', indicator.id).select('id').single()))
@@ -137,6 +138,11 @@ function IndicatorForm({ indicator, rooms, onDone }) {
             ))}
           </div>
         </fieldset>
+        <Field label="Keterangan (opsional)" hint="Tampil di bawah grafik pemantauan dan formulir cetak.">
+          <textarea rows={3} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })}
+            className="resize-none rounded-xl border border-field px-3 py-2.5 text-[15px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            placeholder="Mis. Suhu normal lemari es 2–8 °C. Bila di luar rentang: cek pintu & termostat, pindahkan reagen, lapor teknisi." />
+        </Field>
         <fieldset className="flex flex-col gap-1">
           <legend className="mb-1 text-[13px] font-semibold">Dipasang di</legend>
           <div className="flex max-h-64 flex-col gap-0.5 overflow-y-auto rounded-xl border border-line p-2">

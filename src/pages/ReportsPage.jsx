@@ -5,7 +5,8 @@ import { FileDown, Printer } from 'lucide-react';
 import { useRoomsWithEquipment } from '@/features/master/api';
 import { rows } from '@/lib/api';
 import { downloadCsv } from '@/lib/csv';
-import { SHIFT_LABEL, SHIFTS, todayWib } from '@/lib/dates';
+import { currentShift, SHIFT_LABEL, todayWib } from '@/lib/dates';
+import MonitoringChart from '@/components/MonitoringChart';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { APP } from '@/config';
 import { Alert, Button, Card, Field, Spinner } from '@/components/ui';
@@ -23,7 +24,7 @@ function monthInfo(ym) {
 export default function ReportsPage() {
   const [params, setParams] = useSearchParams();
   const kind = params.get('jenis') || 'ceklis';
-  const [ym, setYm] = useState(todayWib().slice(0, 7));
+  const [ym, setYm] = useState(params.get('bulan') || todayWib().slice(0, 7));
   const rooms = useRoomsWithEquipment();
 
   return (
@@ -45,7 +46,7 @@ export default function ReportsPage() {
       {rooms.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
         kind === 'ceklis'
           ? <ChecklistReport rooms={rooms.data} ym={ym} setYm={setYm} />
-          : <IndicatorReport rooms={rooms.data} ym={ym} setYm={setYm} />
+          : <IndicatorReport rooms={rooms.data} ym={ym} setYm={setYm} initialLoc={params.get('lok')} />
       )}
     </div>
   );
@@ -192,12 +193,12 @@ function ChecklistReport({ rooms, ym, setYm }) {
 
 /* ----------------------------- INDIKATOR ----------------------------- */
 
-function IndicatorReport({ rooms, ym, setYm }) {
+function IndicatorReport({ rooms, ym, setYm, initialLoc }) {
   const mi = monthInfo(ym);
   const targetsQ = useQuery({
     queryKey: ['master', 'report-targets'],
     queryFn: () => rows(supabase.from('indicator_targets')
-      .select('id,room_id,equipment_id,is_active,indicator:indicators!inner(id,name,unit,min_value,max_value,decimals,shifts)')),
+      .select('id,room_id,equipment_id,is_active,indicator:indicators!inner(id,name,unit,min_value,max_value,decimals,shifts,notes)')),
   });
   const roomName = new Map(rooms.map((r) => [r.id, r.name]));
   const eqLabel = new Map(rooms.flatMap((r) => r.equipment.map((e) => [e.id, `${e.name} · ${r.name}`])));
@@ -212,7 +213,7 @@ function IndicatorReport({ rooms, ym, setYm }) {
     }
     return [...m.values()];
   }, [targetsQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [locKey, setLocKey] = useState(null);
+  const [locKey, setLocKey] = useState(initialLoc);
   const loc = locs.find((l) => l.key === locKey) ?? locs[0];
 
   const q = useQuery({
@@ -228,7 +229,6 @@ function IndicatorReport({ rooms, ym, setYm }) {
 
   const cols = loc.targets.flatMap((t) => t.indicator.shifts.map((s) => ({ t, s })));
   const byKey = new Map((q.data ?? []).map((r) => [`${r.target_id}|${r.reading_date}|${r.shift}`, r]));
-  const fmt = (r, t) => (r ? Number(r.value).toLocaleString('id-ID', { maximumFractionDigits: t.indicator.decimals }) : '');
   const outs = (q.data ?? []).filter((r) => r.is_out_of_range).sort((a, b) => (a.reading_date + a.shift).localeCompare(b.reading_date + b.shift));
   const tById = new Map(loc.targets.map((t) => [t.id, t]));
   const range = (i) => [i.min_value, i.max_value].map((v) => (v === null ? '…' : Number(v).toLocaleString('id-ID'))).join(' s/d ');
@@ -255,46 +255,34 @@ function IndicatorReport({ rooms, ym, setYm }) {
         </div>
       </div>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
-      {q.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
-        <Sheet>
-          <Kop title="Formulir Pencatatan Indikator Ruangan / Alat" lines={[['Lokasi', loc.label], ['Bulan', mi.label],
-            ['Indikator', loc.targets.map((t) => `${t.indicator.name} (${range(t.indicator)} ${t.indicator.unit})`).join('; ')], ['', '']]} />
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr>
-                <th rowSpan={2} className="border border-ink/60 px-1.5 py-1">Tgl</th>
-                {loc.targets.map((t) => (
-                  <th key={t.id} colSpan={t.indicator.shifts.length} className="border border-ink/60 px-1.5 py-1">{t.indicator.name} ({t.indicator.unit})</th>
-                ))}
-              </tr>
-              <tr>
-                {cols.map(({ t, s }) => <th key={t.id + s} className="border border-ink/60 px-1 py-0.5 font-semibold">{SHIFT_LABEL[s]}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {mi.days.map((d) => (
-                <tr key={d} className="break-inside-avoid">
-                  <td className="border border-ink/60 px-1.5 py-0.5 text-center">{Number(d.slice(8))}</td>
-                  {cols.map(({ t, s }) => {
-                    const r = byKey.get(`${t.id}|${d}|${s}`);
-                    return <td key={t.id + s} className={cn('border border-ink/60 px-1 py-0.5 text-center', r?.is_out_of_range && 'font-extrabold text-bad')}>{fmt(r, t)}{r?.is_out_of_range ? '!' : ''}</td>;
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex flex-col gap-1 text-xs break-inside-avoid">
-            <p className="font-bold">Nilai di luar batas &amp; tindakan korektif ({outs.length})</p>
-            {outs.length === 0 ? <p className="text-muted">Tidak ada. Semua nilai dalam batas normal.</p> : outs.map((r) => (
-              <p key={r.target_id + r.reading_date + r.shift}>
-                {Number(r.reading_date.slice(8))} {MONTHS[mi.m - 1].slice(0, 3)}, {SHIFT_LABEL[r.shift].toLowerCase()} · {tById.get(r.target_id)?.indicator.name} {Number(r.value).toLocaleString('id-ID')} {tById.get(r.target_id)?.indicator.unit} ({r.initials}): {r.corrective_action}
-              </p>
-            ))}
-            <p className="text-muted">Keterangan: ! = di luar batas normal. Shift: {SHIFTS.map((s) => SHIFT_LABEL[s]).join(', ')}.</p>
+      {q.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : loc.targets.map((t, k) => {
+        const mine = (q.data ?? []).filter((r) => r.target_id === t.id);
+        const myOuts = outs.filter((r) => r.target_id === t.id);
+        return (
+          <div key={t.id} className={cn(k < loc.targets.length - 1 && 'print:break-after-page')}>
+            <Sheet>
+              <Kop title={`Formulir Pemantauan ${t.indicator.name}`} lines={[['Lokasi', loc.label], ['Bulan', mi.label],
+                ['Batas normal', `${range(t.indicator)} ${t.indicator.unit}`], ['Waktu catat', t.indicator.shifts.map((s) => SHIFT_LABEL[s]).join(', ')]]} />
+              <MonitoringChart indicator={t.indicator} readings={mine} days={mi.days} now={currentShift()} />
+              <div className="grid grid-cols-2 gap-6 text-xs break-inside-avoid">
+                <div className="flex flex-col gap-1">
+                  <p className="font-bold">Keterangan</p>
+                  <p className="whitespace-pre-line text-ink-soft">{t.indicator.notes || `Nilai normal ${range(t.indicator)} ${t.indicator.unit}. Nilai di luar batas wajib disertai tindakan korektif.`}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="font-bold">Nilai di luar batas &amp; tindakan korektif ({myOuts.length})</p>
+                  {myOuts.length === 0 ? <p className="text-muted">Tidak ada. Semua nilai dalam batas normal.</p> : myOuts.map((r) => (
+                    <p key={r.reading_date + r.shift}>
+                      {Number(r.reading_date.slice(8))} {MONTHS[mi.m - 1].slice(0, 3)}, {SHIFT_LABEL[r.shift].toLowerCase()} · {Number(r.value).toLocaleString('id-ID')} {t.indicator.unit} ({r.initials}): {r.corrective_action}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <Signatures left={APP.signLeft} right={APP.signRight} />
+            </Sheet>
           </div>
-          <Signatures left={APP.signLeft} right={APP.signRight} />
-        </Sheet>
-      )}
+        );
+      })}
     </>
   );
 }

@@ -10,6 +10,7 @@ import { runOrQueue } from '@/lib/outbox';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { Alert, Badge, Button, Card, Spinner } from '@/components/ui';
 import { cn } from '@/lib/cn';
+import ReportToTechnician from '@/components/ReportToTechnician';
 
 const TABS = [
   { id: 'ceklis', label: 'Ceklis' },
@@ -38,9 +39,16 @@ export default function EquipmentPage() {
           <div className="flex min-w-0 flex-1 flex-col">
             <h1 className="truncate text-lg font-extrabold">{eq.data?.name ?? '…'}</h1>
             <p className="truncate text-xs text-muted">
-              {[eq.data?.room?.name, eq.data?.category].filter(Boolean).join(' · ')}
+              {eq.data?.room && <Link to={`/ruang/${eq.data.room.id}`} className="font-semibold text-brand hover:underline">{eq.data.room.name}</Link>}
+              {[eq.data?.type?.name ?? eq.data?.category].filter(Boolean).map((x) => ` · ${x}`)}
             </p>
           </div>
+          {eq.data && (
+            <ReportToTechnician roomId={eq.data.room?.id} roomName={eq.data.room?.name} path={`/alat/${id}`}
+              equipment={{ id, name: eq.data.name, typeName: eq.data.type?.name ?? eq.data.category }}
+              className="h-10 px-3"
+              label={<><span className="lg:hidden">Lapor</span><span className="hidden lg:inline">Laporkan ke teknisi</span></>} />
+          )}
         </div>
         <div role="tablist" className="grid grid-cols-3">
           {TABS.map((t) => (

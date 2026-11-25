@@ -1,7 +1,7 @@
 // Edge Function "push": push notification SiQura.
 //   public_key → kunci publik VAPID untuk berlangganan di HP
 //   bootstrap  → buat kunci VAPID & rahasia penjadwal (sekali), pasang jadwal pg_cron
-//   send       → dipanggil pg_cron (08.00 & 15.00 WIB), kirim pengingat ke petugas
+//   send       → dipanggil pg_cron (08.00 & 20.00 WIB), kirim pengingat ke petugas
 //   test       → kirim notifikasi uji ke perangkat milik pengguna yang login
 // Kunci rahasia dibuat & disimpan di server; tidak pernah melewati GitHub atau chat.
 import webpush from 'npm:web-push@3.6.7';
@@ -20,7 +20,7 @@ const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const db = createClient(URL_, SERVICE, { auth: { persistSession: false } });
 
-const SHIFT_LABEL: Record<string, string> = { pagi: 'pagi', sore: 'siang', malam: 'malam' };
+const SHIFT_LABEL: Record<string, string> = { pagi: 'pagi', sore: 'sore', malam: 'malam' };
 
 function randomToken(bytes = 32) {
   return Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
       if (!subs.length) return json({ error: 'Notifikasi belum diaktifkan di perangkat ini' }, 400);
       const result = await sendTo(subs as Sub[], {
         title: 'SiQura · Notifikasi aktif',
-        body: 'Pengingat shift akan muncul seperti ini pukul 08.00 dan 15.00.',
+        body: 'Pengingat shift akan muncul seperti ini pukul 08.00 dan 20.00.',
         tag: 'siqura-test',
         url: '/akun',
       });

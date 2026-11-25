@@ -25,12 +25,12 @@ export function diffDays(aIso, bIso) {
 }
 
 export const SHIFTS = ['pagi', 'sore', 'malam'];
-// Kunci 'sore' dipertahankan di database; ditampilkan sebagai "Siang".
-export const SHIFT_LABEL = { pagi: 'Pagi', sore: 'Siang', malam: 'Malam' };
+export const SHIFT_LABEL = { pagi: 'Pagi', sore: 'Sore', malam: 'Malam' };
+export const SHIFT_SHORT = { pagi: 'P', sore: 'S', malam: 'M' };
 
 /**
  * Shift yang sedang berjalan.
- * Pagi 07.00–13.59, Siang 14.00–20.59, Malam 21.00–06.59.
+ * Pagi 07.00–13.59, Sore 14.00–20.59, Malam 21.00–06.59.
  * Malam lewat tengah malam tetap dicatat pada tanggal malam itu dimulai.
  */
 export function currentShift(date = new Date()) {

@@ -11,6 +11,7 @@ import HomePage from '@/pages/HomePage';
 import EquipmentListPage from '@/pages/EquipmentListPage';
 import EquipmentPage from '@/pages/EquipmentPage';
 import IndicatorPage from '@/pages/IndicatorPage';
+import RoomPage from '@/pages/RoomPage';
 import QrResolvePage from '@/pages/QrResolvePage';
 import AccountPage from '@/pages/AccountPage';
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route element={<RequireAuth><AppShell /></RequireAuth>}>
             <Route index element={<Home />} />
             <Route path="alat/:id" element={<EquipmentPage />} />
+            <Route path="ruang/:id" element={<RoomPage />} />
             <Route path="master" element={<MasterPage />} />
             <Route path="petugas" element={<StaffPage />} />
             <Route path="qr" element={<QrCardsPage />} />
