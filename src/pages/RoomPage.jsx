@@ -85,21 +85,18 @@ function MobileIndicators({ data }) {
   const locs = [...new Set(data.targets.map((t) => t.lok))];
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex min-w-0 flex-col gap-3 overflow-x-hidden p-4">
       <DateStrip from={stripFrom} to={now.date} value={date} onChange={setDate} targets={data.targets} readings={readings.data ?? []} now={now} today={today} />
 
-      <div className="flex items-center justify-between gap-2"
-        onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
-        onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - (touch.current ?? 0); if (Math.abs(dx) > 60) go(dx > 0 ? -1 : 1); touch.current = null; }}>
-        <button type="button" onClick={() => go(-1)} aria-label="Hari sebelumnya" className="flex size-10 items-center justify-center rounded-xl border border-line bg-white"><ChevronLeft size={18} aria-hidden="true" /></button>
-        <h2 className="text-center text-[15px] font-bold">{formatLongDate(date)}</h2>
-        <button type="button" onClick={() => go(1)} disabled={date >= now.date} aria-label="Hari berikutnya" className="flex size-10 items-center justify-center rounded-xl border border-line bg-white disabled:opacity-40"><ChevronRight size={18} aria-hidden="true" /></button>
-      </div>
-
       {readings.error && <Alert>{friendlyError(readings.error)}</Alert>}
-      {readings.isPending ? <div className="flex justify-center py-6"><Spinner /></div> : (
-        <DayLog targets={data.targets} readings={readings.data} date={date} now={now} />
-      )}
+      <div className="flex min-w-0 flex-col gap-2.5"
+        onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - (touch.current ?? 0); if (Math.abs(dx) > 70) go(dx > 0 ? -1 : 1); touch.current = null; }}>
+        <h2 className="text-[13px] font-semibold text-muted">{formatLongDate(date)}</h2>
+        {readings.isPending ? <div className="flex justify-center py-6"><Spinner /></div> : (
+          <DayLog targets={data.targets} readings={readings.data} date={date} now={now} />
+        )}
+      </div>
 
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(locs.length, 2)}, minmax(0,1fr))` }}>
         {locs.slice(0, 2).map((lok) => {
@@ -143,11 +140,15 @@ function DateStrip({ from, to, value, onChange, targets, readings, now, today })
   const ref = useRef(null);
   const days = useMemo(() => Array.from({ length: 14 }, (_, i) => addDays(from, i)).filter((d) => d <= to), [from, to]);
   const wd = (d) => new Intl.DateTimeFormat('id-ID', { weekday: 'short', timeZone: 'UTC' }).format(new Date(d + 'T00:00:00Z'));
-  useEffect(() => { ref.current?.querySelector('[aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' }); }, [value]);
+  useEffect(() => {
+    // geser hanya strip tanggal (bukan halaman) agar tanggal terpilih di tengah
+    const box = ref.current, el = box?.querySelector('[aria-pressed="true"]');
+    if (box && el) box.scrollTo({ left: el.offsetLeft - box.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' });
+  }, [value]);
 
   return (
-    <div className="flex items-stretch gap-2">
-      <div ref={ref} className="-ml-4 flex flex-1 snap-x gap-1.5 overflow-x-auto pr-1 pl-4 [scrollbar-width:none]" role="group" aria-label="Pilih tanggal">
+    <div className="flex min-w-0 items-stretch gap-2">
+      <div ref={ref} className="-ml-4 flex min-w-0 flex-1 snap-x gap-1.5 overflow-x-auto pr-3 pl-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_90%,transparent)]" role="group" aria-label="Pilih tanggal">
         {days.map((d) => {
           const st = dayState(targets, readings, d, now);
           return (
@@ -202,7 +203,7 @@ function DayLog({ targets, readings, date, now }) {
                     ) : <span className="text-lg leading-tight font-extrabold text-subtle">—</span>}
                     <span className="ml-auto flex items-center gap-1.5">
                       {r && <span className="text-xs text-subtle">{r.initials}{r.is_backdated ? ' · susulan' : ''}</span>}
-                      <Badge tone={SLOT[st].tone}>{SLOT[st].label}</Badge>
+                      {!(st === 'missed' && date < now.date) && <Badge tone={SLOT[st].tone}>{SLOT[st].label}</Badge>}
                     </span>
                   </div>
                   {r?.is_out_of_range && r.corrective_action && (
@@ -360,7 +361,9 @@ function LogTable({ target, readings, days, now }) {
                             <b className={cn('tnum', r.is_out_of_range ? 'text-bad' : 'text-ink')}>{formatValue(r.value, ind.decimals)} {ind.unit}</b>
                             <span className="text-xs text-subtle">{r.initials}{r.is_backdated ? '*' : ''}</span>
                           </span>
-                        ) : st === 'none' ? <span className="text-subtle">·</span> : <Badge tone={SLOT[st].tone}>{SLOT[st].label}</Badge>}
+                        ) : st === 'none' ? <span className="text-subtle">·</span>
+                          : st === 'missed' && d < now.date ? <span className="text-subtle">—</span>
+                          : <Badge tone={SLOT[st].tone}>{SLOT[st].label}</Badge>}
                       </td>
                     );
                   })}
