@@ -27,7 +27,12 @@ function RequireAuth({ children }) {
   const { loading, session, profile } = useAuth();
   const location = useLocation();
   if (loading) return <Loading />;
-  if (!session) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  // Hanya tautan QR yang diingat untuk dibuka setelah masuk; selain itu ke Beranda/Dashboard,
+  // supaya akun berikutnya tidak mendarat di halaman terakhir akun sebelumnya.
+  if (!session) {
+    const from = location.pathname + location.search;
+    return <Navigate to="/login" replace state={from.startsWith('/q') ? { from } : null} />;
+  }
   if (profile && !profile.is_active) {
     return <div className="p-6 text-center text-sm text-muted">Akun Anda dinonaktifkan. Hubungi admin laboratorium.</div>;
   }

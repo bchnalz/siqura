@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight, ClipboardList, LogOut, QrCode, Settings2, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import LogoutButton from '@/components/LogoutButton';
 import { Badge, Button, Card } from '@/components/ui';
 import InstallHint from '@/components/InstallHint';
 import NotificationSettings from '@/components/NotificationSettings';
 
 export default function AccountPage() {
-  const { profile, user, signOut, isAdmin } = useAuth();
+  const { profile, user, isAdmin } = useAuth();
   return (
     <div className="flex flex-col gap-4 p-4 lg:max-w-xl lg:p-0">
       <h1 className="pt-2 text-xl font-extrabold lg:text-2xl">Akun</h1>
@@ -41,7 +42,7 @@ export default function AccountPage() {
       </nav>
       <NotificationSettings />
       <InstallHint />
-      <Button variant="outline" onClick={signOut}><LogOut size={18} aria-hidden="true" /> Keluar</Button>
+      <LogoutButton className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-field bg-white text-[15px] font-bold text-brand hover:bg-brand-soft"><LogOut size={18} aria-hidden="true" /> Keluar</LogoutButton>
     </div>
   );
 }

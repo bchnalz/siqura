@@ -3,6 +3,7 @@ import {
   BarChart3, ClipboardList, FlaskConical, Home, LineChart, LogOut, QrCode, ScanLine, Settings2, UserRound, Users,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import LogoutButton from '@/components/LogoutButton';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { Logo } from '@/components/ui';
 import { cn } from '@/lib/cn';
@@ -24,7 +25,7 @@ const desktopNav = [
 ];
 
 function DesktopShell() {
-  const { isAdmin, profile, signOut } = useAuth();
+  const { isAdmin, profile } = useAuth();
   return (
     <div className="flex min-h-dvh">
       <aside className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col gap-6 bg-brand px-4 py-6 text-white print:hidden">
@@ -52,9 +53,9 @@ function DesktopShell() {
               <span className="text-xs text-on-brand-muted">{isAdmin ? 'Admin' : 'Petugas'}</span>
             </span>
           </NavLink>
-          <button onClick={signOut} className="flex h-10 items-center gap-2 rounded-xl px-3 text-[13px] font-semibold text-on-brand-muted hover:bg-brand-tint/60">
+          <LogoutButton className="flex h-10 items-center gap-2 rounded-xl px-3 text-[13px] font-semibold text-on-brand-muted hover:bg-brand-tint/60">
             <LogOut size={16} aria-hidden="true" /> Keluar
-          </button>
+          </LogoutButton>
           <p className="text-xs leading-relaxed text-on-brand-muted">{APP.unit}</p>
         </div>
       </aside>
@@ -103,8 +104,8 @@ function TabItem({ to, label, icon: Icon, end }) {
 function MobileShell() {
   const onEquipment = useMatch('/alat/:id');
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ground">
-      <main className={cn('flex-1 print:pb-0', !onEquipment && 'pb-24')}><Outlet /></main>
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg min-w-0 flex-col bg-ground">
+      <main className={cn('min-w-0 flex-1 print:pb-0', !onEquipment && 'pb-24')}><Outlet /></main>
       {!onEquipment && (
         <nav aria-label="Menu utama" className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-line bg-white px-2 pt-2 print:hidden">
           {/* Tombol Scan dikunci di tengah; kiri & kanan berbagi ruang sisa,

@@ -73,3 +73,8 @@ export function useOutboxCount() {
     () => 0,
   );
 }
+
+/** Kosongkan antrean (mis. saat keluar akun, agar catatan tidak terkirim atas nama akun lain). */
+export function clearOutbox() {
+  write([]);
+}

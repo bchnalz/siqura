@@ -13,7 +13,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const next = location.state?.from || '/';
+  const from = location.state?.from;
+  const next = typeof from === 'string' && from.startsWith('/q') ? from : '/';
 
   if (session) return <Navigate to={next} replace />;
 

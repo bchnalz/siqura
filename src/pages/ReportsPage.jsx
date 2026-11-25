@@ -28,7 +28,7 @@ export default function ReportsPage() {
   const rooms = useRoomsWithEquipment();
 
   return (
-    <div className="flex flex-col gap-4 p-4 lg:p-0 print:p-0">
+    <div className="flex min-w-0 flex-col gap-4 p-4 lg:p-0 print:p-0">
       {/* Ukuran kertas untuk cetak */}
       <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } }'}</style>
       <div className="flex flex-col gap-3 pt-2 print:hidden">
@@ -54,9 +54,9 @@ export default function ReportsPage() {
 
 function MonthField({ ym, setYm }) {
   return (
-    <Field label="Bulan">
+    <Field label="Bulan" className="col-span-2 min-w-0 sm:w-auto">
       <input type="month" value={ym} max={todayWib().slice(0, 7)} onChange={(e) => e.target.value && setYm(e.target.value)}
-        className="h-11 rounded-xl border border-field bg-white px-3 text-sm font-semibold" />
+        className="h-11 w-full min-w-0 rounded-xl border border-field bg-white px-3 text-sm font-semibold sm:w-auto" />
     </Field>
   );
 }
@@ -97,7 +97,7 @@ function Sheet({ children }) {
   return (
     <>
     <p className="text-xs text-muted lg:hidden print:hidden">Pratinjau formulir A4. Geser ke samping untuk melihat semua tanggal; hasil cetak dan CSV tetap lengkap.</p>
-    <div className="overflow-x-auto rounded-2xl border border-line bg-white print:overflow-visible print:rounded-none print:border-0">
+    <div className="max-w-full min-w-0 overflow-x-auto rounded-2xl border border-line bg-white print:overflow-visible print:rounded-none print:border-0">
       <div className="flex min-w-[960px] flex-col gap-3 p-6 text-ink print:min-w-0 print:p-0">{children}</div>
     </div>
     </>
@@ -136,14 +136,14 @@ function ChecklistReport({ rooms, ym, setYm }) {
 
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3 print:hidden">
-        <Field label="Alat">
-          <select value={eq.id} onChange={(e) => setEqId(e.target.value)} className="h-11 rounded-xl border border-field bg-white px-3 text-sm font-semibold">
+      <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap print:hidden">
+        <Field label="Alat" className="col-span-2 min-w-0 sm:w-auto">
+          <select value={eq.id} onChange={(e) => setEqId(e.target.value)} className="h-11 w-full min-w-0 truncate rounded-xl border border-field bg-white px-3 text-sm font-semibold sm:w-auto sm:max-w-[420px]">
             {rooms.map((r) => <optgroup key={r.id} label={r.name}>{r.equipment.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</optgroup>)}
           </select>
         </Field>
         <MonthField ym={ym} setYm={setYm} />
-        <div className="ml-auto flex gap-2">
+        <div className="col-span-2 grid grid-cols-2 gap-2 sm:ml-auto sm:flex">
           <Button variant="outline" onClick={csv} disabled={!q.data}><FileDown size={17} aria-hidden="true" /> CSV</Button>
           <Button onClick={() => window.print()} disabled={!q.data}><Printer size={17} aria-hidden="true" /> Cetak A4</Button>
         </div>
@@ -242,14 +242,14 @@ function IndicatorReport({ rooms, ym, setYm, initialLoc }) {
 
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3 print:hidden">
-        <Field label="Lokasi">
-          <select value={loc.key} onChange={(e) => setLocKey(e.target.value)} className="h-11 rounded-xl border border-field bg-white px-3 text-sm font-semibold">
+      <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap print:hidden">
+        <Field label="Lokasi" className="col-span-2 min-w-0 sm:w-auto">
+          <select value={loc.key} onChange={(e) => setLocKey(e.target.value)} className="h-11 w-full min-w-0 truncate rounded-xl border border-field bg-white px-3 text-sm font-semibold sm:w-auto sm:max-w-[420px]">
             {locs.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
           </select>
         </Field>
         <MonthField ym={ym} setYm={setYm} />
-        <div className="ml-auto flex gap-2">
+        <div className="col-span-2 grid grid-cols-2 gap-2 sm:ml-auto sm:flex">
           <Button variant="outline" onClick={csv} disabled={!q.data}><FileDown size={17} aria-hidden="true" /> CSV</Button>
           <Button onClick={() => window.print()} disabled={!q.data}><Printer size={17} aria-hidden="true" /> Cetak A4</Button>
         </div>
