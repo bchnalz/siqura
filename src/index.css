@@ -94,38 +94,6 @@ table, .tnum { font-variant-numeric: tabular-nums; }
   .dlg-panel { animation-name: siqura-pop-in; }
   .dlg-panel[data-closing] { animation-name: siqura-pop-out; }
 }
-/* Gooey drop: tetesan jatuh, menyatu, lalu melebar menjadi pemberitahuan pembaruan */
-.goo-layer { position: absolute; inset: -96px 0 -44px 0; filter: url(#siqura-goo); pointer-events: none; }
-.goo-pill { position: absolute; top: 96px; bottom: 44px; left: 0; right: 0; border-radius: 18px; background: var(--color-ink);
-  animation: goo-spread .62s .34s cubic-bezier(.3,1.45,.45,1) backwards; }
-.goo-drop { position: absolute; top: 96px; left: 50%; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; background: var(--color-ink);
-  animation: goo-fall .78s cubic-bezier(.55,0,.6,1) both; }
-.goo-drip { position: absolute; bottom: 44px; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--color-ink);
-  animation: goo-drip 1.1s .62s cubic-bezier(.4,0,.3,1) both; }
-.goo-content { animation: goo-content .45s .72s ease-out backwards; }
-.goo-shadow { animation: siqura-fade-in .4s .8s ease-out backwards; }
-@keyframes goo-fall {
-  0% { transform: translateY(-96px) scale(.55, .7); }
-  55% { transform: translateY(-14px) scale(.9, 1.12); }
-  75% { transform: translateY(6px) scale(1.25, .8); }
-  100% { transform: translateY(10px) scale(.2); opacity: 0; }
-}
-@keyframes goo-spread {
-  0% { left: calc(50% - 22px); right: calc(50% - 22px); }
-  100% { left: 0; right: 0; }
-}
-@keyframes goo-drip {
-  0% { transform: translateY(-10px) scale(.4); }
-  45% { transform: translateY(20px) scale(.9, 1.15); }
-  70% { transform: translateY(12px) scale(.8); }
-  100% { transform: translateY(-12px) scale(.2); opacity: 0; }
-}
-@keyframes goo-content { from { opacity: 0; filter: blur(6px); } }
-@media (prefers-reduced-motion: reduce) {
-  .goo-pill, .goo-content, .goo-shadow { animation: none !important; }
-  .goo-drop, .goo-drip { display: none; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0ms !important; }
   .blur-in, .blur-ghost, .dlg-backdrop, .dlg-panel { animation: none !important; }
