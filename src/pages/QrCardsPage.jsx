@@ -10,7 +10,7 @@ import { equipmentQrUrl, roomQrUrl } from '@/lib/qr';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { APP } from '@/config';
-import { Alert, Button, Card, Spinner } from '@/components/ui';
+import { Alert, Button, Card, Spinner, BlurLoading } from '@/components/ui';
 
 const INK = '#13201F', BRAND = '#0E5A5F';
 const KINDS = [
@@ -122,7 +122,7 @@ export default function QrCardsPage() {
         <p className="text-[13px] text-muted">{hint}</p>
       </div>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
-      {q.isPending && <div className="flex justify-center py-8"><Spinner /></div>}
+      {q.isPending && <BlurLoading />}
       {q.data && !cards.length && <Card className="p-4 text-sm text-muted">{kind === 'alat' ? 'Belum ada alat aktif.' : 'Belum ada ruangan aktif.'}</Card>}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 print:grid-cols-3 print:gap-[6mm]">
         {cards.map((c) => <QrCard key={c.id} card={c} />)}

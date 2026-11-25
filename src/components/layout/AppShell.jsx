@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useMatch } from 'react-router-dom';
+import { NavLink, Outlet, useMatch, useLocation } from 'react-router-dom';
 import {
   BarChart3, ClipboardList, FlaskConical, Home, LineChart, LogOut, QrCode, ScanLine, Settings2, UserRound, Users,
 } from 'lucide-react';
@@ -25,6 +25,7 @@ const desktopNav = [
 ];
 
 function DesktopShell() {
+  const { pathname } = useLocation();
   const { isAdmin, profile } = useAuth();
   return (
     <div className="flex min-h-dvh">
@@ -60,7 +61,7 @@ function DesktopShell() {
         </div>
       </aside>
       <main className="min-w-0 flex-1 bg-ground print:bg-white">
-        <div className="mx-auto w-full max-w-6xl px-8 py-6 print:max-w-none print:p-0"><Outlet /></div>
+        <div key={pathname} className="blur-in mx-auto w-full max-w-6xl px-8 py-6 print:max-w-none print:p-0 print:animate-none"><Outlet /></div>
       </main>
     </div>
   );
@@ -102,10 +103,11 @@ function TabItem({ to, label, icon: Icon, end }) {
 }
 
 function MobileShell() {
+  const { pathname } = useLocation();
   const onEquipment = useMatch('/alat/:id');
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg min-w-0 flex-col bg-ground">
-      <main className={cn('min-w-0 flex-1 print:pb-0', !onEquipment && 'pb-24')}><Outlet /></main>
+      <main className={cn('min-w-0 flex-1 print:pb-0', !onEquipment && 'pb-24')}><div key={pathname} className="blur-in print:animate-none"><Outlet /></div></main>
       {!onEquipment && (
         <nav aria-label="Menu utama" className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg border-t border-line bg-white px-2 pt-2 print:hidden">
           {/* Tombol Scan dikunci di tengah; kiri & kanan berbagi ruang sisa,

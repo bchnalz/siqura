@@ -43,7 +43,7 @@ export function Field({ label, hint, children, className }) {
 }
 
 export function Card({ className, ...p }) {
-  return <div className={cn('rounded-2xl border border-line bg-white', className)} {...p} />;
+  return <div className={cn('blur-in rounded-2xl border border-line bg-white', className)} {...p} />;
 }
 
 const tones = {
@@ -62,6 +62,26 @@ export function Badge({ tone = 'muted', className, ...p }) {
 
 export function Spinner({ className }) {
   return <span aria-label="Memuat" role="status" className={cn('inline-block size-5 animate-spin rounded-full border-2 border-brand/25 border-t-brand', className)} />;
+}
+
+/**
+ * Placeholder "blur-up" saat data dimuat: bentuk buram dari tata letak yang akan muncul.
+ * variant: list (kartu), chart (grafik besar), page (judul + kartu), line (satu baris).
+ */
+export function BlurLoading({ variant = 'list', className }) {
+  const block = 'rounded-2xl bg-line';
+  return (
+    <div role="status" aria-label="Memuat" className={cn('pointer-events-none flex flex-col gap-3 py-2', className)}>
+      <div className="blur-ghost flex flex-col gap-3" aria-hidden="true">
+        {variant === 'line' && <div className={cn(block, 'h-9 w-2/3')} />}
+        {variant === 'page' && <><div className={cn(block, 'h-8 w-1/2')} /><div className={cn(block, 'h-24')} /></>}
+        {variant === 'chart' && <><div className={cn(block, 'h-6 w-1/3')} /><div className={cn(block, 'h-64')} /></>}
+        {(variant === 'list' || variant === 'page') && <>
+          <div className={cn(block, 'h-20')} /><div className={cn(block, 'h-20 opacity-80')} /><div className={cn(block, 'h-20 opacity-60')} />
+        </>}
+      </div>
+    </div>
+  );
 }
 
 export function Alert({ tone = 'bad', children, className }) {

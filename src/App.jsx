@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Spinner } from '@/components/ui';
+import { BlurLoading } from '@/components/ui';
 import AppShell from '@/components/layout/AppShell';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import SyncBanner from '@/components/SyncBanner';
@@ -21,7 +21,7 @@ const MasterPage = lazy(() => import('@/pages/master/MasterPage'));
 const StaffPage = lazy(() => import('@/pages/StaffPage'));
 const QrCardsPage = lazy(() => import('@/pages/QrCardsPage'));
 const ReportsPage = lazy(() => import('@/pages/ReportsPage'));
-const Loading = () => <div className="flex min-h-[50dvh] items-center justify-center"><Spinner /></div>;
+const Loading = () => <BlurLoading variant="page" className="mx-auto w-full max-w-lg p-4" />;
 
 function RequireAuth({ children }) {
   const { loading, session, profile } = useAuth();

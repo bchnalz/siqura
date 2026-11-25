@@ -5,7 +5,7 @@ import { useHomeData } from '@/features/home/useHomeData';
 import { useRealtimeRefresh } from '@/hooks/useRealtime';
 import { currentShift, formatLongDate, greeting, SHIFT_LABEL, todayWib } from '@/lib/dates';
 import { friendlyError } from '@/lib/supabase';
-import { Alert, Card, Logo, Spinner } from '@/components/ui';
+import { Alert, Card, Logo, Spinner, BlurLoading } from '@/components/ui';
 import RoomCard from '@/components/RoomCard';
 import { cn } from '@/lib/cn';
 
@@ -67,7 +67,7 @@ export default function HomePage() {
           <ScanLine size={22} aria-hidden="true" /> Scan QR Alat / Ruangan
         </Link>
 
-        {isPending && <div className="flex justify-center py-8"><Spinner /></div>}
+        {isPending && <BlurLoading />}
 
         {data && (
           <section className="flex flex-col gap-2.5">

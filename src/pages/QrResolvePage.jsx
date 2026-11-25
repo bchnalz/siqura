@@ -1,7 +1,7 @@
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Alert, Spinner } from '@/components/ui';
+import { Alert, Spinner, BlurLoading } from '@/components/ui';
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -38,7 +38,7 @@ function EquipmentQr({ params }) {
 
   if (isId) return <Navigate to={`/alat/${eq}`} replace />;
   if (!eq) return <Navigate to="/" replace />;
-  if (isPending) return <div className="flex min-h-dvh items-center justify-center"><Spinner /></div>;
+  if (isPending) return <BlurLoading variant="page" className="mx-auto min-h-dvh w-full max-w-lg p-4" />;
   if (data) return <Navigate to={`/alat/${data.id}`} replace />;
   return (
     <div className="p-4 pt-8">

@@ -8,7 +8,7 @@ import { useActivityStatus, useAudit, useChecks, useEquipment } from '@/features
 import { dueStatus, formatShortDate, intervalLabel, todayWib } from '@/lib/dates';
 import { runOrQueue } from '@/lib/outbox';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Button, Card, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Spinner, BlurLoading } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import ReportToTechnician from '@/components/ReportToTechnician';
 
@@ -63,7 +63,7 @@ export default function EquipmentPage() {
 
       <EquipmentIndicatorsLink equipmentId={id} />
       {eq.error && <Alert className="m-4">{friendlyError(eq.error)}</Alert>}
-      {(eq.isPending || statuses.isPending) && <div className="flex justify-center py-10"><Spinner /></div>}
+      {(eq.isPending || statuses.isPending) && <BlurLoading />}
       {eq.data && statuses.data && (
         <>
           {tab === 'ceklis' && <ChecklistTab equipment={eq.data} statuses={statuses.data} />}
@@ -110,7 +110,7 @@ function ChecklistTab({ equipment, statuses }) {
   if (statuses.length === 0) {
     return <Card className="m-4 p-4 text-sm text-muted">Belum ada daftar kegiatan untuk alat ini. Admin dapat menambahkannya di Kelola Master.</Card>;
   }
-  if (checks.isPending) return <div className="flex justify-center py-10"><Spinner /></div>;
+  if (checks.isPending) return <BlurLoading />;
   if (checks.error) return <Alert className="m-4">{friendlyError(checks.error)}</Alert>;
 
   const initial = Object.fromEntries(checks.data.map((c) => [c.activity_id, c.status]));
@@ -307,7 +307,7 @@ function MatrixTab({ equipment, statuses }) {
       </div>
       {edit && <p className="text-xs text-muted">Ketuk sel: kosong → ✓ selesai → – tidak digunakan → kosong.</p>}
       {err && <Alert tone="warn">{err}</Alert>}
-      {checks.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
+      {checks.isPending ? <BlurLoading /> : (
         <div ref={scroller} className="overflow-x-auto rounded-2xl border border-line bg-white">
           <table className="border-collapse text-xs">
             <thead>
@@ -388,7 +388,7 @@ function describe(row, names) {
 function HistoryTab({ equipmentId, statuses }) {
   const audit = useAudit(equipmentId);
   const names = useMemo(() => new Map(statuses.map((s) => [s.activity_id, s.name])), [statuses]);
-  if (audit.isPending) return <div className="flex justify-center py-10"><Spinner /></div>;
+  if (audit.isPending) return <BlurLoading />;
   if (audit.error) return <Alert className="m-4">{friendlyError(audit.error)}</Alert>;
   return (
     <div className="flex flex-col gap-2 p-4 lg:px-0">

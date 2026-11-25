@@ -9,7 +9,7 @@ import { currentShift, SHIFT_LABEL, todayWib } from '@/lib/dates';
 import MonitoringChart from '@/components/MonitoringChart';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { APP } from '@/config';
-import { Alert, Button, Card, Field, Spinner } from '@/components/ui';
+import { Alert, Button, Card, Field, Spinner, BlurLoading } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -43,7 +43,7 @@ export default function ReportsPage() {
         </div>
       </div>
       {rooms.error && <Alert>{friendlyError(rooms.error)}</Alert>}
-      {rooms.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
+      {rooms.isPending ? <BlurLoading /> : (
         kind === 'ceklis'
           ? <ChecklistReport rooms={rooms.data} ym={ym} setYm={setYm} />
           : <IndicatorReport rooms={rooms.data} ym={ym} setYm={setYm} initialLoc={params.get('lok')} />
@@ -149,7 +149,7 @@ function ChecklistReport({ rooms, ym, setYm }) {
         </div>
       </div>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
-      {q.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
+      {q.isPending ? <BlurLoading /> : (
         <Sheet>
           <Kop title="Formulir Pemeliharaan Alat Laboratorium" lines={[['Ruangan', eq.roomName], ['Bulan', mi.label], ['Alat', eq.name], ['Kategori', eq.category || '–']]} />
           <table className="w-full border-collapse text-[11px]">
@@ -224,7 +224,7 @@ function IndicatorReport({ rooms, ym, setYm, initialLoc }) {
       .in('target_id', loc.targets.map((t) => t.id)).gte('reading_date', mi.from).lte('reading_date', mi.to)),
   });
 
-  if (targetsQ.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (targetsQ.isPending) return <BlurLoading />;
   if (!loc) return <Card className="p-4 text-sm text-muted">Belum ada indikator yang dipasang.</Card>;
 
   const cols = loc.targets.flatMap((t) => t.indicator.shifts.map((s) => ({ t, s })));
@@ -255,7 +255,7 @@ function IndicatorReport({ rooms, ym, setYm, initialLoc }) {
         </div>
       </div>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
-      {q.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : loc.targets.map((t, k) => {
+      {q.isPending ? <BlurLoading /> : loc.targets.map((t, k) => {
         const mine = (q.data ?? []).filter((r) => r.target_id === t.id);
         const myOuts = outs.filter((r) => r.target_id === t.id);
         return (

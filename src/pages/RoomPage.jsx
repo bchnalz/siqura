@@ -7,7 +7,7 @@ import { monthDays, monthLabel, useReadings, useRoom } from '@/features/rooms/ap
 import { addDays, currentShift, dueStatus, formatLongDate, formatShortDate, SHIFT_LABEL, SHIFTS, todayWib } from '@/lib/dates';
 import { formatValue, rangeText, SLOT, slotStatus } from '@/lib/status';
 import { friendlyError } from '@/lib/supabase';
-import { Alert, Badge, Card, Spinner } from '@/components/ui';
+import { Alert, Badge, Card, Spinner, BlurLoading } from '@/components/ui';
 import IndicatorChart from '@/components/IndicatorChart';
 import MonitoringChart from '@/components/MonitoringChart';
 import ReportToTechnician from '@/components/ReportToTechnician';
@@ -37,7 +37,7 @@ export default function RoomPage() {
         )}
       </header>
       {q.error && <Alert className="m-4 lg:m-0">{friendlyError(q.error)}</Alert>}
-      {q.isPending && <div className="flex justify-center py-10"><Spinner /></div>}
+      {q.isPending && <BlurLoading />}
       {q.data && (isDesktop ? <RoomDesktop data={q.data} /> : <RoomMobile data={q.data} />)}
     </div>
   );
@@ -93,7 +93,7 @@ function MobileIndicators({ data }) {
         onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
         onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - (touch.current ?? 0); if (Math.abs(dx) > 70) go(dx > 0 ? -1 : 1); touch.current = null; }}>
         <h2 className="text-[13px] font-semibold text-muted">{formatLongDate(date)}</h2>
-        {readings.isPending ? <div className="flex justify-center py-6"><Spinner /></div> : (
+        {readings.isPending ? <BlurLoading /> : (
           <DayLog targets={data.targets} readings={readings.data} date={date} now={now} />
         )}
       </div>
@@ -309,7 +309,7 @@ function RoomDesktop({ data }) {
                 <p className="text-xs text-muted">Normal {rangeText(t.indicator)} {t.indicator.unit} · dicatat {t.indicator.shifts.map((s) => SHIFT_LABEL[s].toLowerCase()).join(', ')}</p>
               </div>
               {readings.error && <Alert>{friendlyError(readings.error)}</Alert>}
-              {readings.isPending ? <div className="flex justify-center py-16"><Spinner /></div>
+              {readings.isPending ? <BlurLoading variant="chart" />
                 : <MonitoringChart indicator={t.indicator} readings={mine} days={days} now={now} />}
               {t.indicator.notes && (
                 <div className="rounded-xl bg-ground px-3.5 py-2.5 text-[13px] whitespace-pre-line text-ink-soft"><b className="text-ink">Keterangan:</b> {t.indicator.notes}</div>

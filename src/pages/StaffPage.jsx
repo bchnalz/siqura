@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { must, useAction } from '@/hooks/useAction';
 import { adminUsers, rows } from '@/lib/api';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Field, Input, Spinner, BlurLoading } from '@/components/ui';
 
 /** Kata sandi sementara yang mudah dibacakan: 3 huruf + 4 angka + 1 huruf besar. */
 function tempPassword() {
@@ -33,7 +33,7 @@ export default function StaffPage() {
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
         <Card className="overflow-hidden">
-          {q.isPending ? <div className="flex justify-center py-8"><Spinner /></div> : (
+          {q.isPending ? <BlurLoading /> : (
             <ul className="divide-y divide-line">
               {q.data.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-4 py-3">

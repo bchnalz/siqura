@@ -22,27 +22,33 @@ function ConfirmLogout({ onClose }) {
   const navigate = useNavigate();
   const pending = useOutboxCount();
   const [busy, setBusy] = useState(false);
+  const [closing, setClosing] = useState(false);
+  // Tutup dengan animasi keluar dulu, baru dilepas dari layar.
+  const close = (after = onClose) => { setClosing(true); setTimeout(after, 200); };
   const titleId = useId();
   const cancelRef = useRef(null);
 
   useEffect(() => {
     const prev = document.activeElement;
     cancelRef.current?.focus();
-    const onKey = (e) => e.key === 'Escape' && !busy && onClose();
+    const onKey = (e) => e.key === 'Escape' && !busy && close();
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); prev?.focus?.(); };
-  }, [onClose, busy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy]);
 
   async function confirm() {
     setBusy(true);
     if (pending) clearOutbox();
-    await signOut();
-    navigate('/login', { replace: true, state: null });
+    close(async () => {
+      await signOut();
+      navigate('/login', { replace: true, state: null });
+    });
   }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-4" onClick={(e) => e.target === e.currentTarget && !busy && onClose()}>
-      <div role="alertdialog" aria-modal="true" aria-labelledby={titleId} className="flex w-full max-w-sm flex-col gap-4 rounded-t-3xl bg-white p-5 pb-safe sm:rounded-3xl">
+    <div data-closing={closing || undefined} className="dlg-backdrop fixed inset-0 z-[80] flex items-end justify-center bg-ink/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={(e) => e.target === e.currentTarget && !busy && close()}>
+      <div data-closing={closing || undefined} role="alertdialog" aria-modal="true" aria-labelledby={titleId} className="dlg-panel flex w-full max-w-sm flex-col gap-4 rounded-t-3xl bg-white p-5 pb-safe sm:rounded-3xl">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand"><LogOut size={20} aria-hidden="true" /></span>
           <div className="flex flex-col gap-1">
@@ -59,7 +65,7 @@ function ConfirmLogout({ onClose }) {
           </p>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <Button ref={cancelRef} type="button" variant="outline" onClick={onClose} disabled={busy}>Batal</Button>
+          <Button ref={cancelRef} type="button" variant="outline" onClick={() => close()} disabled={busy}>Batal</Button>
           <Button type="button" onClick={confirm} disabled={busy} className={pending ? 'bg-bad hover:bg-bad-strong' : undefined}>
             {busy ? 'Keluar…' : 'Ya, keluar'}
           </Button>

@@ -8,7 +8,7 @@ import { useHomeData } from '@/features/home/useHomeData';
 import RoomCard, { SlotLegend } from '@/components/RoomCard';
 import { rows } from '@/lib/api';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Card, Spinner } from '@/components/ui';
+import { Alert, Card, Spinner, BlurLoading } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 /** Dashboard desktop: ringkasan kepatuhan, indikator, keterlambatan. */
@@ -71,7 +71,7 @@ export default function DashboardPage() {
         <Link to="/laporan" className="inline-flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-brand-strong">Laporan &amp; cetak A4</Link>
       </header>
       {q.error && <Alert>{friendlyError(q.error)}</Alert>}
-      {q.isPending && <div className="flex justify-center py-16"><Spinner /></div>}
+      {q.isPending && <BlurLoading variant="chart" />}
       {view && (
         <>
           <Card className="grid grid-cols-2 divide-line xl:grid-cols-4 xl:divide-x">

@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import { supabase, friendlyError } from '@/lib/supabase';
-import { Alert, Card, Spinner } from '@/components/ui';
+import { Alert, Card, Spinner, BlurLoading } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 export default function EquipmentListPage() {
@@ -32,7 +32,7 @@ export default function EquipmentListPage() {
         </div>
       )}
       {error && <Alert>{friendlyError(error)}</Alert>}
-      {isPending && <div className="flex justify-center py-8"><Spinner /></div>}
+      {isPending && <BlurLoading />}
       {data?.length === 0 && <Card className="p-4 text-sm text-muted">Belum ada ruangan. Admin dapat menambahkannya di Kelola Master.</Card>}
       {rooms.map((r) => (
         <section key={r.id} className="flex flex-col gap-2">

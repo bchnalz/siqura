@@ -9,7 +9,7 @@ import { must, useAction } from '@/hooks/useAction';
 import { intervalLabel } from '@/lib/dates';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { rows } from '@/lib/api';
-import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Field, Input, Spinner, BlurLoading } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 const QUICK = [1, 7, 30, 90, 180, 365];
@@ -20,7 +20,7 @@ export default function ActivitiesTab({ initialEquipment }) {
   const [eqId, setEqId] = useState(initialEquipment);
   const current = all.find((e) => e.id === eqId) ?? all[0];
 
-  if (rooms.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (rooms.isPending) return <BlurLoading />;
   if (rooms.error) return <Alert>{friendlyError(rooms.error)}</Alert>;
   if (!current) return <Card className="p-4 text-sm text-muted">Tambahkan ruangan & alat dulu di tab Ruangan & Alat.</Card>;
 
@@ -57,7 +57,7 @@ export function ActivityList({ scope }) {
   const q = useScopeActivities(scope);
   const { run, error } = useAction();
   const [showInactive, setShowInactive] = useState(false);
-  if (q.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (q.isPending) return <BlurLoading />;
   const all = q.data ?? [];
   // di unit: kegiatan dari jenis dikunci (diatur di Jenis Alat); yang bisa diubah hanya kegiatan khusus unit
   const fromType = scope.kind === 'unit' ? all.filter((a) => a.type_activity_id && a.is_active) : [];

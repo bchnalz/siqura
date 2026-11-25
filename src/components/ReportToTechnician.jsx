@@ -77,16 +77,19 @@ function ReportDialog({ roomId, roomName, equipment, path, onClose }) {
   const [includeFacts, setIncludeFacts] = useState(true);
   const [phone, setPhone] = useState(readPhone);
   const [copied, setCopied] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 200); };
   const cat = category ?? (hasOut ? 'indikator' : equipment ? 'rusak' : 'ruangan');
 
   useEffect(() => {
     const prev = document.activeElement;
     ref.current?.querySelector('textarea')?.focus();
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (e) => e.key === 'Escape' && close();
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; prev?.focus?.(); };
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const message = useMemo(() => buildTechMessage({
     category: cat, urgency, description, room: roomName, equipment, facts: facts.data, includeFacts,
@@ -105,15 +108,15 @@ function ReportDialog({ roomId, roomName, equipment, path, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 lg:items-center" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId}
-        className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white lg:rounded-3xl">
+    <div data-closing={closing || undefined} className="dlg-backdrop fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 backdrop-blur-[2px] lg:items-center" onClick={(e) => e.target === e.currentTarget && close()}>
+      <div ref={ref} data-closing={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={titleId}
+        className="dlg-panel flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white lg:rounded-3xl">
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col">
             <h2 id={titleId} className="text-base font-extrabold">Laporkan ke teknisi</h2>
             <p className="truncate text-xs text-muted">{[roomName, equipment?.name].filter(Boolean).join(' · ')}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Tutup" className="flex size-11 items-center justify-center rounded-xl hover:bg-ground"><X size={20} aria-hidden="true" /></button>
+          <button type="button" onClick={close} aria-label="Tutup" className="flex size-11 items-center justify-center rounded-xl hover:bg-ground"><X size={20} aria-hidden="true" /></button>
         </div>
 
         <div className="flex flex-col gap-4 overflow-y-auto px-4 py-4 lg:grid lg:grid-cols-2 lg:items-start">

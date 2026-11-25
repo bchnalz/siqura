@@ -7,7 +7,7 @@ import { parseNumber } from '@/lib/number';
 import { isKnownUnit, UNITS } from '@/features/master/units';
 import NumberInput from '@/components/NumberInput';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Field, Input, Spinner, BlurLoading } from '@/components/ui';
 
 const fmt = (v) => (v === null || v === undefined ? '' : String(v).replace('.', ','));
 
@@ -15,7 +15,7 @@ export default function IndicatorsTab() {
   const inds = useIndicatorsAdmin();
   const rooms = useRoomsWithEquipment();
   const [editing, setEditing] = useState(undefined); // undefined = tidak ada, null = baru
-  if (inds.isPending || rooms.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (inds.isPending || rooms.isPending) return <BlurLoading />;
   if (inds.error || rooms.error) return <Alert>{friendlyError(inds.error || rooms.error)}</Alert>;
 
   const roomName = new Map(rooms.data.map((r) => [r.id, r.name]));

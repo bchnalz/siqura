@@ -5,7 +5,7 @@ import { useEquipmentTypes, useRoomsWithEquipment } from '@/features/master/api'
 import { cn } from '@/lib/cn';
 import { must, useAction } from '@/hooks/useAction';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Field, Input, Spinner, BlurLoading } from '@/components/ui';
 
 export default function RoomsTab() {
   const q = useRoomsWithEquipment();
@@ -13,7 +13,7 @@ export default function RoomsTab() {
   const typeName = new Map((types.data ?? []).map((t) => [t.id, t.name]));
   const [editing, setEditing] = useState(null); // { type: 'room'|'equipment'|'add', item, roomId }
 
-  if (q.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (q.isPending) return <BlurLoading />;
   if (q.error) return <Alert>{friendlyError(q.error)}</Alert>;
 
   return (

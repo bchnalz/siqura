@@ -8,7 +8,7 @@ import { must, useAction } from '@/hooks/useAction';
 import { rows } from '@/lib/api';
 import { friendlyError, supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
-import { Alert, Badge, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Field, Input, Spinner, BlurLoading } from '@/components/ui';
 import { ActivityList, AddActivities } from './ActivitiesTab';
 
 /**
@@ -21,7 +21,7 @@ export default function TypesTab() {
   const selId = params.get('jenis');
   const select = (id) => setParams(id ? { tab: 'jenis', jenis: id } : { tab: 'jenis' }, { replace: true });
 
-  if (q.isPending) return <div className="flex justify-center py-8"><Spinner /></div>;
+  if (q.isPending) return <BlurLoading />;
   if (q.error) return <Alert>{friendlyError(q.error)}</Alert>;
   const selected = selId === 'baru' ? 'baru' : q.data.find((t) => t.id === selId);
 
@@ -155,7 +155,7 @@ function TypeIndicators({ type }) {
     <Card className="flex flex-col gap-2 p-4">
       <h2 className="text-[15px] font-extrabold">Indikator yang dicatat</h2>
       <p className="text-xs text-muted">Dipasang otomatis ke setiap unit jenis ini. Buat indikator baru di tab Indikator.</p>
-      {inds.isPending ? <Spinner /> : (
+      {inds.isPending ? <BlurLoading variant="line" /> : (
         <div className="flex flex-wrap gap-2">
           {(inds.data ?? []).filter((i) => i.is_active || on.has(i.id)).map((i) => (
             <label key={i.id} className={cn('flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-semibold',

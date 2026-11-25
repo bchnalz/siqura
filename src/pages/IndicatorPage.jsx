@@ -5,7 +5,7 @@ import { useRealtimeRefresh } from '@/hooks/useRealtime';
 import { addDays, currentShift, formatShortDate, SHIFT_LABEL, SHIFTS, todayWib } from '@/lib/dates';
 import { runOrQueue } from '@/lib/outbox';
 import { friendlyError, supabase } from '@/lib/supabase';
-import { Alert, Badge, Button, Card, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Spinner, BlurLoading } from '@/components/ui';
 import IndicatorChart from '@/components/IndicatorChart';
 import NumberInput from '@/components/NumberInput';
 import { cn } from '@/lib/cn';
@@ -58,7 +58,7 @@ export default function IndicatorPage() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <h1 className="pt-2 text-xl font-extrabold">Indikator</h1>
-      {targets.isPending && <div className="flex justify-center py-8"><Spinner /></div>}
+      {targets.isPending && <BlurLoading />}
       {targets.error && <Alert>{friendlyError(targets.error)}</Alert>}
       {targets.data && locations.length === 0 && (
         <Card className="p-4 text-sm text-muted">Belum ada indikator yang dipasang. Admin dapat menambahkannya di Kelola Master.</Card>
@@ -120,7 +120,7 @@ function LocationPanel({ loc }) {
         {date < now.date && <Alert tone="warn">Isi susulan untuk {formatShortDate(date)}. Waktu input asli tetap tercatat.</Alert>}
       </Card>
 
-      {readings.isPending ? <div className="flex justify-center py-6"><Spinner /></div> : readings.error ? <Alert>{friendlyError(readings.error)}</Alert> : (
+      {readings.isPending ? <BlurLoading /> : readings.error ? <Alert>{friendlyError(readings.error)}</Alert> : (
         active.length === 0
           ? <Card className="p-4 text-sm text-muted">Tidak ada indikator yang dijadwalkan untuk shift {SHIFT_LABEL[shift].toLowerCase()} di lokasi ini.</Card>
           : <ReadingForm key={`${date}|${shift}|${readings.dataUpdatedAt}`} targets={active} readings={readings.data} date={date} shift={shift} />
@@ -245,7 +245,7 @@ function ChartPanel({ loc }) {
           ))}
         </div>
       )}
-      {q.isPending ? <div className="flex justify-center py-6"><Spinner /></div>
+      {q.isPending ? <BlurLoading />
         : q.error ? <Alert>{friendlyError(q.error)}</Alert>
         : <IndicatorChart readings={q.data} from={from} to={today} indicator={target.indicator} />}
       {outs.length > 0 && (

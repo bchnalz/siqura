@@ -70,8 +70,34 @@ table, .tnum { font-variant-numeric: tabular-nums; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Blur-up: konten muncul dari buram ke tajam, menggantikan spinner */
+@keyframes siqura-blur-in {
+  from { opacity: 0; filter: blur(10px); }
+  to { opacity: 1; filter: blur(0); }
+}
+.blur-in { animation: siqura-blur-in .42s cubic-bezier(.2,.7,.2,1) backwards; } /* backwards: tanpa filter setelah selesai, agar elemen fixed tetap benar */
+@keyframes siqura-ghost { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
+.blur-ghost { filter: blur(7px); animation: siqura-ghost 1.4s ease-in-out infinite; }
+
+/* Dialog: latar memudar, panel naik (HP) atau membesar (layar lebar) */
+@keyframes siqura-fade-in { from { opacity: 0; } }
+@keyframes siqura-fade-out { to { opacity: 0; } }
+@keyframes siqura-sheet-in { from { transform: translateY(100%); } }
+@keyframes siqura-sheet-out { to { transform: translateY(100%); } }
+@keyframes siqura-pop-in { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+@keyframes siqura-pop-out { to { opacity: 0; transform: translateY(8px) scale(.96); } }
+.dlg-backdrop { animation: siqura-fade-in .2s ease-out both; }
+.dlg-backdrop[data-closing] { animation: siqura-fade-out .18s ease-in both; }
+.dlg-panel { animation: siqura-sheet-in .28s cubic-bezier(.2,.8,.2,1) both; }
+.dlg-panel[data-closing] { animation: siqura-sheet-out .2s cubic-bezier(.4,0,1,1) both; }
+@media (min-width: 640px) {
+  .dlg-panel { animation-name: siqura-pop-in; }
+  .dlg-panel[data-closing] { animation-name: siqura-pop-out; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0ms !important; }
+  .blur-in, .blur-ghost, .dlg-backdrop, .dlg-panel { animation: none !important; }
+  .blur-ghost { opacity: .7; }
 }
 
 @media print {
