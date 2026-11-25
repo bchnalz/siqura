@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, History, LineChart, Pencil, RotateCcw, Undo2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, History, LineChart, Pencil, RotateCcw, Undo2, ListChecks, ListX } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeRefresh } from '@/hooks/useRealtime';
 import { useActivityStatus, useAudit, useChecks, useEquipment } from '@/features/equipment/api';
@@ -132,7 +132,11 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
   const doneCount = statuses.filter((s) => sel[s.activity_id] === 'done').length;
   const changed = statuses.filter((s) => (sel[s.activity_id] ?? null) !== (initial[s.activity_id] ?? null));
 
+  const total = statuses.length;
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
   const toggle = (aid) => setSel((p) => ({ ...p, [aid]: p[aid] === 'done' ? null : 'done' }));
+  const checkAll = () => setSel(Object.fromEntries(statuses.map((s) => [s.activity_id, 'done'])));
+  const clearAll = () => setSel({});
   const setIdle = (on) => setSel(on ? Object.fromEntries(statuses.map((s) => [s.activity_id, 'na'])) : {});
   const checkDue = () => setSel((p) => {
     const n = Object.fromEntries(Object.entries(p).filter(([, v]) => v === 'done'));
@@ -186,10 +190,9 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
           <span className="text-xs text-muted">tanda –</span>
         </label>
 
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-bold">{idle ? 'Ditandai: tidak digunakan' : `${doneCount} dari ${statuses.length} dicentang`}</span>
-          <Button variant="outline" size="sm" onClick={checkDue}>Centang yang jatuh tempo</Button>
-        </div>
+        <ChecklistProgress done={doneCount} total={total} pct={pct} idle={idle}
+          onCheckAll={checkAll} onClearAll={clearAll} onCheckDue={checkDue}
+          anyChecked={doneCount > 0 || idle} allChecked={doneCount === total} />
 
         {statuses.map((s) => {
           const st = dueStatus(s, today);
@@ -223,13 +226,56 @@ function ChecklistForm({ equipment, statuses, date, setDate, today, initial }) {
         )}
       </div>
 
-      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-lg flex-col gap-2 border-t border-line bg-white px-4 pt-3 lg:sticky lg:bottom-4 lg:mx-0 lg:max-w-none lg:flex-row lg:items-center lg:justify-end lg:rounded-2xl lg:border lg:p-3 lg:shadow-[0_8px_24px_rgba(19,32,31,0.10)]">
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-lg flex-col gap-2 overflow-hidden border-t border-line bg-white px-4 pt-3 lg:sticky lg:bottom-4 lg:mx-0 lg:max-w-none lg:flex-row lg:items-center lg:justify-end lg:rounded-2xl lg:border lg:p-3 lg:shadow-[0_8px_24px_rgba(19,32,31,0.10)]">
+        <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-line lg:hidden">
+          <span className={cn('block h-1 transition-[width,background-color] duration-500 ease-out', idle ? 'bg-subtle' : pct === 100 ? 'bg-ok' : 'bg-brand')} style={{ width: `${idle ? 100 : pct}%` }} />
+        </span>
         {msg && <Alert tone={msg.tone} className="lg:flex-1">{msg.text}</Alert>}
         <Button size="lg" className="lg:min-w-64" onClick={save} disabled={busy || changed.length === 0}>
           {busy ? 'Menyimpan…' : changed.length ? `Simpan ceklis ${formatShortDate(date)}` : 'Tidak ada perubahan'}
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Ringkasan progres ceklis: bilah dinamis + tombol centang semua / hapus centang. */
+function ChecklistProgress({ done, total, pct, idle, onCheckAll, onClearAll, onCheckDue, anyChecked, allChecked }) {
+  const full = !idle && pct === 100;
+  return (
+    <div className="flex flex-col gap-2.5 rounded-2xl border border-line bg-white px-3.5 py-3">
+      <div className="flex items-center gap-2">
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-sm font-bold">
+            {idle ? 'Ditandai: tidak digunakan' : full ? 'Semua kegiatan dicentang ✓' : `${done} dari ${total} dicentang`}
+          </span>
+          {!idle && <span className={cn('tnum text-xs font-semibold', full ? 'text-ok' : 'text-muted')}>{pct}% selesai</span>}
+        </span>
+        <IconAction label="Centang semua" onClick={onCheckAll} disabled={allChecked && !idle}><ListChecks size={20} aria-hidden="true" /></IconAction>
+        <IconAction label="Hapus semua centang" onClick={onClearAll} disabled={!anyChecked}><ListX size={20} aria-hidden="true" /></IconAction>
+      </div>
+      <div role="progressbar" aria-label="Progres ceklis" aria-valuemin={0} aria-valuemax={total} aria-valuenow={idle ? 0 : done}
+        className="relative h-2.5 overflow-hidden rounded-full bg-line">
+        <div className={cn('h-full rounded-full transition-[width,background-color] duration-500 ease-[cubic-bezier(.2,.8,.2,1)]',
+          idle ? 'bg-subtle' : full ? 'bg-ok' : 'bg-brand')} style={{ width: `${idle ? 100 : pct}%` }} />
+        {/* penanda tiap kegiatan */}
+        {total > 1 && total <= 24 && Array.from({ length: total - 1 }, (_, i) => (
+          <span key={i} aria-hidden="true" className="absolute top-0 h-full w-0.5 bg-white/70" style={{ left: `${((i + 1) / total) * 100}%` }} />
+        ))}
+      </div>
+      <button type="button" onClick={onCheckDue} className="self-start text-[13px] font-semibold text-brand hover:underline">
+        Centang yang jatuh tempo saja
+      </button>
+    </div>
+  );
+}
+
+function IconAction({ label, children, ...p }) {
+  return (
+    <button type="button" aria-label={label} title={label} {...p}
+      className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-field bg-white text-brand hover:bg-brand-soft disabled:border-line disabled:text-subtle disabled:hover:bg-white">
+      {children}
+    </button>
   );
 }
 
